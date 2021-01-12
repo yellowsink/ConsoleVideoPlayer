@@ -9,7 +9,18 @@
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0"/>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ConsoleVideoPlayer.Img2Text\ConsoleVideoPlayer.Img2Text.csproj" />
+    <ProjectReference Include="..\ConsoleVideoPlayer.VideoProcessor\ConsoleVideoPlayer.VideoProcessor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="test_vid.mp4">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
