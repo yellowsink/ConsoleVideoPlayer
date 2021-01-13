@@ -1,9 +1,16 @@
-﻿namespace ConsoleVideoPlayer.Player
+﻿using CommandLine;
+
+namespace ConsoleVideoPlayer.Player
 {
 	public class Args
 	{
-		public bool   Help;
-		public string TempFolderPath;
-		public string VideoPath;
+		[Option('r', "read", Required = false)]
+		public bool Help { get; set; }
+
+		[Option('v', "video", Required = true)]
+		public string VideoPath { get; set; }
+
+		[Option('t', "tempfolder", Required = false)]
+		public string TempFolderPath { get; set; }
 	}
 }

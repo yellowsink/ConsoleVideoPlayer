@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using CommandLine.Options;
+using CommandLine;
 using ConsoleVideoPlayer.Img2Text;
 using ConsoleVideoPlayer.VideoProcessor;
 using Xabe.FFmpeg;
@@ -13,8 +13,7 @@ namespace ConsoleVideoPlayer.Player
 {
 	internal class Program
 	{
-		private static OptionSet _set;
-		private static string    TempDir;
+		private static string TempDir;
 
 		private static void Main(string[] args)
 		{
@@ -44,9 +43,10 @@ namespace ConsoleVideoPlayer.Player
 
 		private static void Help()
 		{
-			var stringWriter = new StringWriter();
-			_set.WriteOptionDescriptions(stringWriter);
-			Console.WriteLine(stringWriter.ToString());
+			Console.WriteLine(@"ConsoleVideoPlayer Help
+-v, --video:                 Specify the location of the video to play
+-t, --tempfolder (optional): Specify a temporary file to use
+-h, --help:                  Show this page");
 			Console.WriteLine(
 				"The width and height set are in 16:9. Videos at other ratios will be STRETCHED NOT LETTERBOXED");
 		}
@@ -54,30 +54,7 @@ namespace ConsoleVideoPlayer.Player
 		private static Args ProcessArgs(IEnumerable<string> rawArgs)
 		{
 			var processedArgs = new Args();
-			_set = new OptionSet
-			{
-				{
-					"h|help", "show this message and exit",
-					v => processedArgs.Help = v != null
-				},
-				{
-					"v|video", "specify where the video to play is",
-					v => processedArgs.VideoPath = v
-				},
-				{
-					"t|temp", "specify where to save temporary files",
-					v => processedArgs.TempFolderPath = v
-				}
-			};
-			try
-			{
-				_set.Parse(rawArgs);
-			}
-			catch (OptionException)
-			{
-				processedArgs.Help = true;
-			}
-
+			Parser.Default.ParseArguments<Args>(rawArgs).WithParsed(o => { processedArgs = o; });
 			return processedArgs;
 		}
 
