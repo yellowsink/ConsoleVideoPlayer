@@ -59,37 +59,6 @@ namespace ConsoleVideoPlayer.Player
 			return processedArgs;
 		}
 
-		/*private static Args ProcessArgs() => ProcessArgs(Environment.GetCommandLineArgs());
-
-		private static Args ProcessArgs(IReadOnlyList<string> rawArgs)
-		{
-			// I hate dealing with arguments ugh
-			var processedArgs = new Args();
-			if (rawArgs.Contains("-h")
-			 || rawArgs.Contains("--help"))
-				processedArgs.Help = true; // display help
-			else
-				for (var i = 0; i < rawArgs.Count; i++)
-				{
-					var arg     = rawArgs[i];
-					var nextArg = rawArgs[i + 1];
-
-					switch (arg)
-					{
-						case "-v": // -v is used to specify the video path
-							processedArgs.VideoPath = nextArg;
-							i++;
-							break;
-						case "-t": // -t is used to specify the temp folder path
-							processedArgs.TempFolderPath = nextArg;
-							i++;
-							break;
-					}
-				}
-
-			return processedArgs;
-		}*/
-
 		/// <summary>
 		///     Pre-processes the video: extracts audio, splits into images, gets metadata
 		/// </summary>
