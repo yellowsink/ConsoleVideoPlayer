@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
+using CommandLine.Options;
 using ConsoleVideoPlayer.VideoProcessor;
 using Xabe.FFmpeg;
 
@@ -14,9 +14,54 @@ namespace ConsoleVideoPlayer.Player
 			               .GetResult(); // Do it like this instead of .Wait() to stop exceptions from being wrapped into an AggregateException
 		}
 
-		private static async Task MainAsync(string[] args) => Console.WriteLine("Hello World!");
+		private static async Task MainAsync(string[] args)
+		{
+			var processedArgs = ProcessArgs(args);
+			if (processedArgs.Help) Help();
+		}
+
+		private static void Help()
+		{
+			Console.WriteLine(
+				@"-h / --help: Show this help message
+-v {path} / --video {path}: Path to video file to play
+-t {path} / -t {path} (optional): Path to the temporary folder to use"
+			);
+		}
 
 		private static Args ProcessArgs(string[] rawArgs)
+		{
+			var processedArgs = new Args();
+			var set = new OptionSet
+			{
+				{
+					"h|help", "show this message and exit",
+					v => processedArgs.Help = v != null
+				},
+				{
+					"v|video", "choose where the video to play is",
+					v => processedArgs.VideoPath = v
+				},
+				{
+					"t|temp", "choose where to save temporary files",
+					v => processedArgs.TempFolderPath = v
+				}
+			};
+			try
+			{
+				set.Parse(rawArgs);
+			}
+			catch (OptionException)
+			{
+				processedArgs.Help = true;
+			}
+
+			return processedArgs;
+		}
+
+		/*private static Args ProcessArgs() => ProcessArgs(Environment.GetCommandLineArgs());
+
+		private static Args ProcessArgs(IReadOnlyList<string> rawArgs)
 		{
 			// I hate dealing with arguments ugh
 			var processedArgs = new Args();
@@ -24,7 +69,7 @@ namespace ConsoleVideoPlayer.Player
 			 || rawArgs.Contains("--help"))
 				processedArgs.Help = true; // display help
 			else
-				for (var i = 0; i < rawArgs.Length; i++)
+				for (var i = 0; i < rawArgs.Count; i++)
 				{
 					var arg     = rawArgs[i];
 					var nextArg = rawArgs[i + 1];
@@ -43,7 +88,7 @@ namespace ConsoleVideoPlayer.Player
 				}
 
 			return processedArgs;
-		}
+		}*/
 
 		/// <summary>
 		///     Pre-processes the video: extracts audio, splits into images, gets metadata
