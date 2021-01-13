@@ -11,6 +11,9 @@ namespace ConsoleVideoPlayer.Img2Text
 
 		public string ImagePath { get; init; }
 
+		public KeyValuePair<Coordinate, ColouredCharacter>[] FullProcessImage(int targetWidth, int targetHeight)
+			=> ColoursToCharacters(GetColoursOfFrame(targetWidth, targetHeight));
+
 		private BlockSize CalculateBlockSize(int targetWidth, int targetHeight)
 		{
 			var img           = new MagickImage(ImagePath);
