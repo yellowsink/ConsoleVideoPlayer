@@ -36,8 +36,10 @@ namespace ConsoleVideoPlayer.Player
 				          Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 				          @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 
-			var metadata = await PreProcess(processedArgs.VideoPath);
-			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, @"\split images"));
+			var metadata         = await PreProcess(processedArgs.VideoPath);
+			var asciiArt         = ConvertAllImagesToAscii(Path.Combine(TempDir, @"\split images"));
+			var firstVideoStream = metadata.VideoStreams.First();
+			PlayAllFrames(asciiArt, firstVideoStream.Framerate);
 		}
 
 		private static void Help()
@@ -147,6 +149,22 @@ namespace ConsoleVideoPlayer.Player
 				WriteColouredChar(character);
 
 				if (lastChar) Console.WriteLine();
+			}
+		}
+
+		private static void PlayAllFrames(
+			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, double frameRate)
+		{
+			var frameTimeRawSeconds   = 1 / frameRate;
+			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
+			var frameTimeMilliseconds = (int) (frameTimeRawSeconds - frameTimeSeconds) * 1000;
+
+			var frameTime = new TimeSpan(0, 0, 0, frameTimeSeconds, frameTimeMilliseconds);
+
+			foreach (var frame in frames)
+			{
+				WriteAsciiFrame(frame);
+				Thread.Sleep(frameTime);
 			}
 		}
 	}
