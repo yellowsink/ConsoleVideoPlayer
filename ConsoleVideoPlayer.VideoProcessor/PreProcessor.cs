@@ -77,5 +77,20 @@ namespace ConsoleVideoPlayer.VideoProcessor
 			            .ExtractEveryNthFrame(1, OutputFileNameBuilder)
 			            .Start();
 		}
+
+		public void CleanupTempDir()
+		{
+			try
+			{
+				Directory.Delete(
+					Path.Combine(
+						Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+						@"Temp\Cain Atkinson\ConsoleVideoPlayer"));
+			}
+			catch
+			{
+				// ignored
+			}
+		}
 	}
 }
