@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace ConsoleVideoPlayer
+namespace ConsoleVideoPlayer.Player
 {
 	internal class Program
 	{
