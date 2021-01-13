@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommandLine.Options;
 using ConsoleVideoPlayer.VideoProcessor;
@@ -14,10 +15,16 @@ namespace ConsoleVideoPlayer.Player
 			               .GetResult(); // Do it like this instead of .Wait() to stop exceptions from being wrapped into an AggregateException
 		}
 
-		private static async Task MainAsync(string[] args)
+		private static async Task MainAsync(IEnumerable<string> args)
 		{
 			var processedArgs = ProcessArgs(args);
-			if (processedArgs.Help) Help();
+			if (processedArgs.Help || string.IsNullOrWhiteSpace(processedArgs.VideoPath))
+			{
+				Help();
+				return;
+			}
+
+			await PreProcess(processedArgs.VideoPath);
 		}
 
 		private static void Help()
@@ -29,7 +36,7 @@ namespace ConsoleVideoPlayer.Player
 			);
 		}
 
-		private static Args ProcessArgs(string[] rawArgs)
+		private static Args ProcessArgs(IEnumerable<string> rawArgs)
 		{
 			var processedArgs = new Args();
 			var set = new OptionSet
