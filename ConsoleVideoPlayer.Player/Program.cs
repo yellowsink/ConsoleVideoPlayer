@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace ConsoleVideoPlayer
 {
-	class Program
+	internal class Program
 	{
-		static void Main(string[] args)
+		private static void Main(string[] args)
 		{
-			Console.WriteLine("Hello World!");
+			MainAsync().GetAwaiter()
+			           .GetResult(); // Do it like this instead of .Wait() to stop exceptions from being wrapped into an AggregateException
 		}
+
+		private static async Task MainAsync() => Console.WriteLine("Hello World!");
 	}
 }
