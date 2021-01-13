@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 using CommandLine.Options;
 using ConsoleVideoPlayer.VideoProcessor;
@@ -9,6 +10,8 @@ namespace ConsoleVideoPlayer.Player
 {
 	internal class Program
 	{
+		private static OptionSet _set;
+
 		private static void Main(string[] args)
 		{
 			MainAsync(args).GetAwaiter()
@@ -29,34 +32,32 @@ namespace ConsoleVideoPlayer.Player
 
 		private static void Help()
 		{
-			Console.WriteLine(
-				@"-h / --help: Show this help message
--v {path} / --video {path}: Path to video file to play
--t {path} / -t {path} (optional): Path to the temporary folder to use"
-			);
+			var stringWriter = new StringWriter();
+			_set.WriteOptionDescriptions(stringWriter);
+			Console.WriteLine(stringWriter.ToString());
 		}
 
 		private static Args ProcessArgs(IEnumerable<string> rawArgs)
 		{
 			var processedArgs = new Args();
-			var set = new OptionSet
+			_set = new OptionSet
 			{
 				{
 					"h|help", "show this message and exit",
 					v => processedArgs.Help = v != null
 				},
 				{
-					"v|video", "choose where the video to play is",
+					"v|video", "specify where the video to play is",
 					v => processedArgs.VideoPath = v
 				},
 				{
-					"t|temp", "choose where to save temporary files",
+					"t|temp", "specify where to save temporary files",
 					v => processedArgs.TempFolderPath = v
 				}
 			};
 			try
 			{
-				set.Parse(rawArgs);
+				_set.Parse(rawArgs);
 			}
 			catch (OptionException)
 			{
