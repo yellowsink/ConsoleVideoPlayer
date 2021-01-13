@@ -4,4 +4,8 @@
     <TargetFramework>net5</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="7.22.3" />
+  </ItemGroup>
+
 </Project>
