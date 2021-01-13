@@ -19,13 +19,7 @@ namespace ConsoleVideoPlayer.Tests
 			_testVideoPath = Path.Combine(Environment.CurrentDirectory, "test_vid.mp4");
 			_tempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 			                           @"Temp\Cain Atkinson\ConsoleVideoPlayer");
-			CleanupTempFolder();
 		}
-
-		private void CleanupTempFolder() => Directory.Delete(_tempFolder, true);
-
-		[TearDown] // TearDown is called after each test
-		public void Teardown() => CleanupTempFolder();
 
 		[Test]
 		public async Task ExtractAudioTest()
