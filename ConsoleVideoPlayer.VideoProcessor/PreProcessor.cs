@@ -78,14 +78,11 @@ namespace ConsoleVideoPlayer.VideoProcessor
 			            .Start();
 		}
 
-		public void CleanupTempDir()
+		public void CleanupTempDir(string tempDir)
 		{
 			try
 			{
-				Directory.Delete(
-					Path.Combine(
-						Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-						@"Temp\Cain Atkinson\ConsoleVideoPlayer"));
+				Directory.Delete(tempDir, true);
 			}
 			catch
 			{

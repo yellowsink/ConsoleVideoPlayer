@@ -45,7 +45,7 @@ namespace ConsoleVideoPlayer.Player
 		{
 			Console.WriteLine(@"ConsoleVideoPlayer Help
 -v, --video:                 Specify the location of the video to play
--t, --tempfolder (optional): Specify a temporary file to use
+-t, --tempfolder (optional): Specify a temporary folder to use
 -h, --help:                  Show this page");
 			Console.WriteLine(
 				"The width and height set are in 16:9. Videos at other ratios will be STRETCHED NOT LETTERBOXED");
@@ -58,18 +58,13 @@ namespace ConsoleVideoPlayer.Player
 			return processedArgs;
 		}
 
-		/// <summary>
-		///     Pre-processes the video: extracts audio, splits into images, gets metadata
-		/// </summary>
-		/// <param name="path">The path of the video to process</param>
-		/// <returns>The video metadata</returns>
 		private static async Task<IMediaInfo> PreProcess(string path)
 		{
-			Console.WriteLine("Reading metadata");
 			var processor = new PreProcessor {VideoPath = path};
+			Console.WriteLine("Reading metadata");
 			await processor.PopulateMetadata();
 			Console.WriteLine("Preparing to pre-process");
-			processor.CleanupTempDir();
+			processor.CleanupTempDir(TempDir);
 			Console.Write("Extracting Audio... ");
 			await processor.ExtractAudio();
 			Console.WriteLine("Done");
@@ -81,14 +76,6 @@ namespace ConsoleVideoPlayer.Player
 			return processor.Metadata;
 		}
 
-		/// <summary>
-		///     Converts each image in the specified directory to ASCII art, scaled to the target resolution and returns them in an
-		///     array.
-		/// </summary>
-		/// <param name="imageDirectory">The directory containing the images</param>
-		/// <param name="targetWidth">The target width</param>
-		/// <param name="targetHeight">The target height</param>
-		/// <returns></returns>
 		private static KeyValuePair<Coordinate, ColouredCharacter>[][] ConvertAllImagesToAscii(
 			string imageDirectory, int targetWidth = 160, int targetHeight = 90)
 		{
