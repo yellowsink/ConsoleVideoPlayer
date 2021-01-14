@@ -60,7 +60,7 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task<IMediaInfo> PreProcess(string path)
 		{
-			var processor = new PreProcessor {VideoPath = path};
+			var processor = new PreProcessor {VideoPath = path, TempFolder = TempDir};
 			Console.WriteLine("Reading metadata");
 			await processor.PopulateMetadata();
 			Console.WriteLine("Preparing to pre-process");

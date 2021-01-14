@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xabe.FFmpeg;
@@ -23,8 +22,6 @@ namespace ConsoleVideoPlayer.VideoProcessor
 		/// <returns>The path to the audio file</returns>
 		public async Task<string> ExtractAudio(bool overwrite = false)
 		{
-			TempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			                          @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 			var audioPath    = Path.Combine(TempFolder, "ExtractedAudio");
 			var audioPathWav = $"{audioPath}.wav";
 
