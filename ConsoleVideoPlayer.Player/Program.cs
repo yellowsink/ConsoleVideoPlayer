@@ -65,6 +65,7 @@ namespace ConsoleVideoPlayer.Player
 			await processor.PopulateMetadata();
 			Console.WriteLine("Preparing to pre-process");
 			processor.CleanupTempDir(TempDir);
+			Directory.CreateDirectory(TempDir);
 			Console.Write("Extracting Audio... ");
 			await processor.ExtractAudio();
 			Console.WriteLine("Done");

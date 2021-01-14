@@ -30,10 +30,17 @@ namespace ConsoleVideoPlayer.Img2Text
 		private static Color ColourFromPixel(IPixel<ushort> pixel)
 		{
 			var colour = pixel.ToColor();
-			return Color.FromArgb(colour.A,
-			                      colour.R,
-			                      colour.G,
-			                      colour.B);
+
+			int ScaleColour(ushort unscaled)
+			{
+				var scaleFactor = ushort.MaxValue / 255;
+				return unscaled / scaleFactor;
+			}
+
+			return Color.FromArgb(ScaleColour(colour.A),
+			                      ScaleColour(colour.R),
+			                      ScaleColour(colour.G),
+			                      ScaleColour(colour.B));
 		}
 
 		/// <summary>
@@ -41,7 +48,7 @@ namespace ConsoleVideoPlayer.Img2Text
 		/// </summary>
 		public Color AverageColours(IEnumerable<Color> colours)
 		{
-			var colourArray = colours as Color[] ?? colours.ToArray();
+			var colourArray = colours.ToArray();
 			var alphaTotal = colourArray.Select(c => Convert.ToInt32(c.A))
 			                            .Aggregate(0, (current, item) => current + item);
 			var redTotal = colourArray.Select(c => Convert.ToInt32(c.R))
@@ -77,7 +84,7 @@ namespace ConsoleVideoPlayer.Img2Text
 				                             && p.Y >= startY
 				                             && p.Y < endY);
 
-			return AverageColours(pixelsInArea.Select(ColourFromPixel));
+			return AverageColours(pixelsInArea.Select(ColourFromPixel).ToList());
 		}
 	}
 }
