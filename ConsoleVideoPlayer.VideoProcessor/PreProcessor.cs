@@ -8,6 +8,7 @@ namespace ConsoleVideoPlayer.VideoProcessor
 {
 	public class PreProcessor
 	{
+		public string     TempFolder;
 		public string     VideoPath { get; init; }
 		public IMediaInfo Metadata  { get; private set; }
 
@@ -22,9 +23,9 @@ namespace ConsoleVideoPlayer.VideoProcessor
 		/// <returns>The path to the audio file</returns>
 		public async Task<string> ExtractAudio(bool overwrite = false)
 		{
-			var tempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			                              @"Temp\Cain Atkinson\ConsoleVideoPlayer");
-			var audioPath    = Path.Combine(tempFolder, "ExtractedAudio");
+			TempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			                          @"Temp\Cain Atkinson\ConsoleVideoPlayer");
+			var audioPath    = Path.Combine(TempFolder, "ExtractedAudio");
 			var audioPathWav = $"{audioPath}.wav";
 
 			await ExtractAudio(audioPath, overwrite);
@@ -53,10 +54,9 @@ namespace ConsoleVideoPlayer.VideoProcessor
 		/// <returns>The path to the folder containing the images</returns>
 		public async Task<string> SplitVideoIntoImages(bool overwrite = false)
 		{
-			var tempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			                              @"Temp\Cain Atkinson\ConsoleVideoPlayer\Split Images");
-			await SplitVideoIntoImages(tempFolder, overwrite);
-			return tempFolder;
+			var destination = Path.Combine(TempFolder, "Split Images");
+			await SplitVideoIntoImages(destination, overwrite);
+			return destination;
 		}
 
 		/// <summary>

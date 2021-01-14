@@ -36,7 +36,7 @@ namespace ConsoleVideoPlayer.Player
 				          @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 
 			var metadata         = await PreProcess(processedArgs.VideoPath);
-			var asciiArt         = ConvertAllImagesToAscii(Path.Combine(TempDir, @"\split images"));
+			var asciiArt         = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"));
 			var firstVideoStream = metadata.VideoStreams.First();
 			PlayAllFrames(asciiArt, firstVideoStream.Framerate);
 		}
