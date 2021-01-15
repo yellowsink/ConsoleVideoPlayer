@@ -105,15 +105,14 @@ namespace ConsoleVideoPlayer.Player
 		private static void WriteAsciiFrame(IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>> frame)
 		{
 			var currentRow = 0;
+			var first      = true;
 
 			foreach (var (coordinate, character) in frame)
 			{
-				var lastChar             = coordinate.X == 0;
-				if (lastChar) currentRow = coordinate.Y;
-
 				WriteColouredChar(character);
 
-				if (lastChar) Console.WriteLine();
+				if (coordinate.X == 0 && !first) Console.WriteLine();
+				first = false;
 			}
 		}
 
