@@ -86,8 +86,8 @@ namespace ConsoleVideoPlayer.Player
 			foreach (var file in new DirectoryInfo(imageDirectory).EnumerateFiles())
 			{
 				var converter = new Converter {ImagePath = file.FullName};
-				var Ascii     = converter.FullProcessImage(targetWidth, targetHeight);
-				working.Add(Ascii);
+				var ascii     = converter.FullProcessImage(targetWidth, targetHeight);
+				working.Add(ascii);
 			}
 
 			Console.WriteLine("Done");
@@ -122,12 +122,13 @@ namespace ConsoleVideoPlayer.Player
 		{
 			var frameTimeRawSeconds   = 1 / frameRate;
 			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
-			var frameTimeMilliseconds = (int) (frameTimeRawSeconds - frameTimeSeconds) * 1000;
+			var frameTimeMilliseconds = (int) ((frameTimeRawSeconds - frameTimeSeconds) * 1000);
 
 			var frameTime = new TimeSpan(0, 0, 0, frameTimeSeconds, frameTimeMilliseconds);
 
 			foreach (var frame in frames)
 			{
+				Console.Clear();
 				WriteAsciiFrame(frame);
 				Thread.Sleep(frameTime);
 			}

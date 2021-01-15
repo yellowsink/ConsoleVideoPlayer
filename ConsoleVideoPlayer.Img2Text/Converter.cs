@@ -50,7 +50,8 @@ namespace ConsoleVideoPlayer.Img2Text
 				// ReSharper disable once PossibleLossOfFraction
 				var scaledIntensity       = (int) Math.Round((double) (intensity / intensityScaleFactor));
 				var offsetScaledIntensity = scaledIntensity - 1;
-				var intensityChar         = IntensityChars[offsetScaledIntensity];
+				var limitedIntensity      = Math.Min(Math.Max(offsetScaledIntensity, 0), IntensityChars.Length - 1);
+				var intensityChar         = IntensityChars[limitedIntensity];
 
 				working.Add(new KeyValuePair<Coordinate, ColouredCharacter>(coordinate, new ColouredCharacter
 				{
