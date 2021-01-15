@@ -21,7 +21,7 @@ namespace ConsoleVideoPlayer.Img2Text
 		{
 			var img = new MagickImage(ImagePath);
 			targetWidth  ??= img.BaseWidth;
-			targetHeight ??= img.BaseWidth;
+			targetHeight ??= img.BaseHeight;
 			var processor = new ImageProcessor {Image = new MagickImage(ImagePath)};
 			var resizedImage = new ImageProcessor
 				{Image = processor.ResizeImage(targetWidth.Value, targetHeight.Value)};

@@ -78,7 +78,7 @@ namespace ConsoleVideoPlayer.Player
 		}
 
 		private static KeyValuePair<Coordinate, ColouredCharacter>[][] ConvertAllImagesToAscii(
-			string imageDirectory, int targetWidth = 160, int targetHeight = 90)
+			string imageDirectory, int targetWidth = 64, int targetHeight = 36)
 		{
 			Console.Write("Converting all images to ASCII art, this may take a while... ");
 
