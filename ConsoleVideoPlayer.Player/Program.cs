@@ -32,8 +32,8 @@ namespace ConsoleVideoPlayer.Player
 
 			TempDir = processedArgs.TempFolderPath ??
 			          Path.Combine(
-				          Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-				          @"Temp\Cain Atkinson\ConsoleVideoPlayer");
+			                       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+			                       @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 
 			var metadata         = await PreProcess(processedArgs.VideoPath);
 			var asciiArt         = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"));
@@ -48,7 +48,7 @@ namespace ConsoleVideoPlayer.Player
 -t, --tempfolder (optional): Specify a temporary folder to use
 -h, --help:                  Show this page");
 			Console.WriteLine(
-				"The width and height set are in 16:9. Videos at other ratios will be STRETCHED NOT LETTERBOXED");
+			                  "The width and height set are in 16:9. Videos at other ratios will be STRETCHED NOT LETTERBOXED");
 		}
 
 		private static Args ProcessArgs(IEnumerable<string> rawArgs)
