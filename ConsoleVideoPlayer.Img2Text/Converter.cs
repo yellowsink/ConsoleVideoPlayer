@@ -46,8 +46,9 @@ namespace ConsoleVideoPlayer.Img2Text
 			{
 				var intensity = (colour.R + colour.G + colour.B) / 3;
 
+				var intensityScaleFactor = 255 / IntensityChars.Length;
 				// ReSharper disable once PossibleLossOfFraction
-				var scaledIntensity       = (int) Math.Round((double) (intensity / IntensityChars.Length));
+				var scaledIntensity       = (int) Math.Round((double) (intensity / intensityScaleFactor));
 				var offsetScaledIntensity = scaledIntensity - 1;
 				var intensityChar         = IntensityChars[offsetScaledIntensity];
 
