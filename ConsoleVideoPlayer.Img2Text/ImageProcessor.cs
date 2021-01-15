@@ -48,7 +48,7 @@ namespace ConsoleVideoPlayer.Img2Text
 
 		public MagickImage ResizeImage(int targetWidth, int targetHeight)
 		{
-			Image.Scale(new MagickGeometry(targetWidth, targetHeight));
+			Image.Resize(new MagickGeometry(targetWidth, targetHeight) {IgnoreAspectRatio = true});
 			return Image;
 		}
 	}

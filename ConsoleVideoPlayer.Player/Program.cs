@@ -35,10 +35,13 @@ namespace ConsoleVideoPlayer.Player
 			                       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 			                       @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 
-			var metadata         = await PreProcess(processedArgs.VideoPath);
-			var asciiArt         = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"));
+			var targetWidth  = 64;
+			var targetHeight = 36;
+
+			var metadata = await PreProcess(processedArgs.VideoPath);
+			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
 			var firstVideoStream = metadata.VideoStreams.First();
-			PlayAllFrames(asciiArt, firstVideoStream.Framerate);
+			PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth);
 		}
 
 		private static void Help()
@@ -78,7 +81,7 @@ namespace ConsoleVideoPlayer.Player
 		}
 
 		private static KeyValuePair<Coordinate, ColouredCharacter>[][] ConvertAllImagesToAscii(
-			string imageDirectory, int targetWidth = 64, int targetHeight = 36)
+			string imageDirectory, int targetWidth, int targetHeight)
 		{
 			Console.Write("Converting all images to ASCII art, this may take a while... ");
 
@@ -102,22 +105,18 @@ namespace ConsoleVideoPlayer.Player
 			Console.ResetColor();
 		}
 
-		private static void WriteAsciiFrame(IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>> frame)
+		private static void WriteAsciiFrame(IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>> frame, int width)
 		{
-			var currentRow = 0;
-			var first      = true;
-
 			foreach (var (coordinate, character) in frame)
 			{
-				WriteColouredChar(character);
+				if (coordinate.X == width) Console.WriteLine();
 
-				if (coordinate.X == 0 && !first) Console.WriteLine();
-				first = false;
+				WriteColouredChar(character);
 			}
 		}
 
 		private static void PlayAllFrames(
-			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, double frameRate)
+			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, double frameRate, int width)
 		{
 			var frameTimeRawSeconds   = 1 / frameRate;
 			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
@@ -128,7 +127,7 @@ namespace ConsoleVideoPlayer.Player
 			foreach (var frame in frames)
 			{
 				Console.Clear();
-				WriteAsciiFrame(frame);
+				WriteAsciiFrame(frame, width);
 				Thread.Sleep(frameTime);
 			}
 		}
