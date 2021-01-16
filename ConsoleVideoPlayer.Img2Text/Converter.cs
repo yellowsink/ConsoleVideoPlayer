@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using ImageMagick;
 
 namespace ConsoleVideoPlayer.Img2Text
@@ -22,9 +23,8 @@ namespace ConsoleVideoPlayer.Img2Text
 			var img = new MagickImage(ImagePath);
 			targetWidth  ??= img.BaseWidth;
 			targetHeight ??= img.BaseHeight;
-			var processor = new ImageProcessor {Image = new MagickImage(ImagePath)};
-			var resizedImage = new ImageProcessor
-				{Image = processor.ResizeImage(targetWidth.Value, targetHeight.Value)};
+			var processor    = new ImageProcessor {Image = new MagickImage(ImagePath)};
+			var resizedImage = ResizeImage(targetWidth.Value, targetHeight.Value, processor);
 
 			var working = new List<KeyValuePair<Coordinate, Color>>();
 			for (var y = 0; y <= targetHeight; y++)
@@ -33,6 +33,27 @@ namespace ConsoleVideoPlayer.Img2Text
 				                                                resizedImage.ColourFromPixelCoordinate(x, y)));
 
 			return working.ToArray();
+		}
+
+		public void WriteResizedImage(int    targetWidth, int targetHeight, string outDir,
+		                              string fileName = null)
+		{
+			Directory.CreateDirectory(outDir);
+
+			var imgProc = new ImageProcessor {Image = new MagickImage(ImagePath)};
+
+			fileName ??= new FileInfo(imgProc.Image.FileName).Name;
+
+			var resized = ResizeImage(targetWidth, targetHeight,
+			                          imgProc);
+			resized.Image.Write(Path.Combine(outDir, fileName));
+		}
+
+		private ImageProcessor ResizeImage(int targetWidth, int targetHeight, ImageProcessor processor)
+		{
+			var resizedImage = new ImageProcessor
+				{Image = processor.ResizeImage(targetWidth, targetHeight)};
+			return resizedImage;
 		}
 
 		/// <summary>

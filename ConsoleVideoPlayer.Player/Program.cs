@@ -39,6 +39,7 @@ namespace ConsoleVideoPlayer.Player
 			var targetHeight = 36;
 
 			var metadata = await PreProcess(processedArgs.VideoPath);
+			// ResizeAllImages(Path.Combine(TempDir, "Split Images"), Path.Combine(TempDir, "Resized Images"), targetWidth, targetHeight, true);
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
 			var firstVideoStream = metadata.VideoStreams.First();
 			PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth);
@@ -78,6 +79,26 @@ namespace ConsoleVideoPlayer.Player
 			Console.WriteLine("pre-processing complete");
 
 			return processor.Metadata;
+		}
+
+		private static void ResizeAllImages(string inputDir, string outDir, int targetWidth, int targetHeight,
+		                                    bool   overwrite = false)
+		{
+			if (overwrite)
+				try
+				{
+					Directory.Delete(outDir, true);
+				}
+				catch
+				{
+					// ignored
+				}
+
+			foreach (var file in new DirectoryInfo(inputDir).EnumerateFiles())
+			{
+				var converter = new Converter {ImagePath = file.FullName};
+				converter.WriteResizedImage(targetWidth, targetHeight, outDir);
+			}
 		}
 
 		private static KeyValuePair<Coordinate, ColouredCharacter>[][] ConvertAllImagesToAscii(
