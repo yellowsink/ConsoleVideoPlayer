@@ -42,7 +42,7 @@ namespace ConsoleVideoPlayer.Player
 			// ResizeAllImages(Path.Combine(TempDir, "Split Images"), Path.Combine(TempDir, "Resized Images"), targetWidth, targetHeight, true);
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
 			var firstVideoStream = metadata.VideoStreams.First();
-			PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth);
+			PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth, targetHeight);
 		}
 
 		private static void Help()
@@ -126,18 +126,26 @@ namespace ConsoleVideoPlayer.Player
 			Console.ResetColor();
 		}
 
-		private static void WriteAsciiFrame(IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>> frame, int width)
+		private static void WriteAsciiFrame(IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>> frame, int width,
+		                                    int                                                      height)
 		{
-			foreach (var (coordinate, character) in frame)
+			// foreach (var (coordinate, character) in frame)
+			// {
+			// 	if (coordinate.X == width) Console.WriteLine();
+			//
+			// 	WriteColouredChar(character);
+			// }
+			var currentFrame = frame as KeyValuePair<Coordinate, ColouredCharacter>[] ?? frame.ToArray();
+			for (var y = 0; y <= height; y++)
 			{
-				if (coordinate.X == width) Console.WriteLine();
-
-				WriteColouredChar(character);
+				for (var x = 0; x <= width; x++)
+					WriteColouredChar(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value);
+				Console.WriteLine();
 			}
 		}
 
-		private static void PlayAllFrames(
-			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, double frameRate, int width)
+		private static void PlayAllFrames(IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames,
+		                                  double frameRate, int width, int height)
 		{
 			var frameTimeRawSeconds   = 1 / frameRate;
 			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
@@ -148,7 +156,7 @@ namespace ConsoleVideoPlayer.Player
 			foreach (var frame in frames)
 			{
 				Console.Clear();
-				WriteAsciiFrame(frame, width);
+				WriteAsciiFrame(frame, width, height);
 				Thread.Sleep(frameTime);
 			}
 		}
