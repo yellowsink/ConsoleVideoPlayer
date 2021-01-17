@@ -37,17 +37,23 @@ namespace ConsoleVideoPlayer.Player
 			                       @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 
 			var targetWidth  = 64;
-			var targetHeight = 36;
+			var targetHeight = 48;
 
-			var metadata = await PreProcess(processedArgs.VideoPath);
+			var preProcessResult = await PreProcess(processedArgs.VideoPath);
 			// ResizeAllImages(Path.Combine(TempDir, "Split Images"), Path.Combine(TempDir, "Resized Images"), targetWidth, targetHeight, true);
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
 			var monochromeFrames = FramesToMonochromeStrings(asciiArt, targetWidth, targetHeight);
 
 			Console.Write("Ready to play video! Press any key to begin playback.");
 			Console.ReadKey(true);
+			Console.Clear();
 
-			var firstVideoStream = metadata.VideoStreams.First();
+
+#pragma warning disable 4014
+			new NetCoreAudio.Player().Play(preProcessResult.AudioPath);
+#pragma warning restore 4014
+
+			var firstVideoStream = preProcessResult.Metadata.VideoStreams.First();
 			PlayAllFramesMonochrome(monochromeFrames, firstVideoStream.Framerate);
 			//PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth, targetHeight);
 		}
@@ -69,7 +75,13 @@ namespace ConsoleVideoPlayer.Player
 			return processedArgs;
 		}
 
-		private static async Task<IMediaInfo> PreProcess(string path)
+		private class PreProcessResult
+		{
+			public IMediaInfo Metadata  { get; set; }
+			public string     AudioPath { get; set; }
+		}
+
+		private static async Task<PreProcessResult> PreProcess(string path)
 		{
 			var processor = new PreProcessor {VideoPath = path, TempFolder = TempDir};
 			Console.WriteLine("Reading metadata");
@@ -78,14 +90,14 @@ namespace ConsoleVideoPlayer.Player
 			processor.CleanupTempDir(TempDir);
 			Directory.CreateDirectory(TempDir);
 			Console.Write("Extracting Audio... ");
-			await processor.ExtractAudio();
+			var audioPath = await processor.ExtractAudio();
 			Console.WriteLine("Done");
 			Console.Write("Splitting into images, this may take a while... ");
 			await processor.SplitVideoIntoImages();
 			Console.WriteLine("Done");
 			Console.WriteLine("pre-processing complete");
 
-			return processor.Metadata;
+			return new PreProcessResult {Metadata = processor.Metadata, AudioPath = audioPath};
 		}
 
 		private static void ResizeAllImages(string inputDir, string outDir, int targetWidth, int targetHeight,
