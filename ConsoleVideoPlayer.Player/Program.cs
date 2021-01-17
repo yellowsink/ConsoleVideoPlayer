@@ -175,7 +175,7 @@ namespace ConsoleVideoPlayer.Player
 		}
 
 		private static void PlayAllFramesMonochrome(IEnumerable<string> frames, double frameRate,
-		                                            int                 latencyCorrectionMs = 15)
+		                                            int                 latencyCorrectionMs = 13)
 		{
 			var frameTimeRawSeconds   = 1 / frameRate;
 			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
@@ -200,7 +200,8 @@ namespace ConsoleVideoPlayer.Player
 		}
 
 		private static string[] FramesToMonochromeStrings(
-			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, int width, int height)
+			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, int width, int height,
+			bool                                                                  ratioCorrection = true)
 		{
 			Console.Write("Optimising frames for playback... ");
 
@@ -212,7 +213,12 @@ namespace ConsoleVideoPlayer.Player
 				for (var y = 0; y < height; y++)
 				{
 					for (var x = 0; x < width; x++)
+					{
 						stringBuilder.Append(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value.Character);
+						if (ratioCorrection)
+							stringBuilder.Append(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value.Character);
+					}
+
 					stringBuilder.AppendLine();
 				}
 
