@@ -44,8 +44,8 @@ namespace ConsoleVideoPlayer.Player
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
 			var monochromeFrames = FramesToMonochromeStrings(asciiArt, targetWidth, targetHeight);
 
-			Console.Write("Ready to play video! Press any key to begin playback.");
-			Console.ReadKey(true);
+			Console.Write("Ready to play video! Press enter to begin playback.");
+			Console.ReadLine();
 			Console.Clear();
 
 
