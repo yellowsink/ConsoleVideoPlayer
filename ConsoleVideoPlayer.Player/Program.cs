@@ -43,6 +43,10 @@ namespace ConsoleVideoPlayer.Player
 			// ResizeAllImages(Path.Combine(TempDir, "Split Images"), Path.Combine(TempDir, "Resized Images"), targetWidth, targetHeight, true);
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
 			var monochromeFrames = FramesToMonochromeStrings(asciiArt, targetWidth, targetHeight);
+
+			Console.Write("Ready to play video! Press any key to begin playback.");
+			Console.ReadKey(true);
+
 			var firstVideoStream = metadata.VideoStreams.First();
 			PlayAllFramesMonochrome(monochromeFrames, firstVideoStream.Framerate);
 			//PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth, targetHeight);
@@ -166,17 +170,24 @@ namespace ConsoleVideoPlayer.Player
 
 			var frameTime = new TimeSpan(0, 0, 0, frameTimeSeconds, frameTimeMilliseconds);
 
+			Console.CursorVisible = false;
+
 			foreach (var frame in frames)
 			{
-				Console.Clear();
+				Console.CursorLeft = 0;
+				Console.CursorTop  = 0;
 				Console.Write(frame);
 				Thread.Sleep(frameTime);
 			}
+
+			Console.CursorVisible = true;
 		}
 
 		private static string[] FramesToMonochromeStrings(
 			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, int width, int height)
 		{
+			Console.Write("Optimising frames for playback... ");
+
 			var working = new List<string>();
 			foreach (var frame in frames)
 			{
@@ -191,6 +202,8 @@ namespace ConsoleVideoPlayer.Player
 
 				working.Add(stringBuilder.ToString());
 			}
+
+			Console.WriteLine("Done");
 
 			return working.ToArray();
 		}
