@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
@@ -41,8 +42,10 @@ namespace ConsoleVideoPlayer.Player
 			var metadata = await PreProcess(processedArgs.VideoPath);
 			// ResizeAllImages(Path.Combine(TempDir, "Split Images"), Path.Combine(TempDir, "Resized Images"), targetWidth, targetHeight, true);
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
+			var monochromeFrames = FramesToMonochromeStrings(asciiArt, targetWidth, targetHeight);
 			var firstVideoStream = metadata.VideoStreams.First();
-			PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth, targetHeight);
+			PlayAllFramesMonochrome(monochromeFrames, firstVideoStream.Framerate);
+			//PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth, targetHeight);
 		}
 
 		private static void Help()
@@ -129,12 +132,6 @@ namespace ConsoleVideoPlayer.Player
 		private static void WriteAsciiFrame(IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>> frame, int width,
 		                                    int                                                      height)
 		{
-			// foreach (var (coordinate, character) in frame)
-			// {
-			// 	if (coordinate.X == width) Console.WriteLine();
-			//
-			// 	WriteColouredChar(character);
-			// }
 			var currentFrame = frame as KeyValuePair<Coordinate, ColouredCharacter>[] ?? frame.ToArray();
 			for (var y = 0; y < height; y++)
 			{
@@ -159,6 +156,43 @@ namespace ConsoleVideoPlayer.Player
 				WriteAsciiFrame(frame, width, height);
 				Thread.Sleep(frameTime);
 			}
+		}
+
+		private static void PlayAllFramesMonochrome(IEnumerable<string> frames, double frameRate)
+		{
+			var frameTimeRawSeconds   = 1 / frameRate;
+			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
+			var frameTimeMilliseconds = (int) ((frameTimeRawSeconds - frameTimeSeconds) * 1000);
+
+			var frameTime = new TimeSpan(0, 0, 0, frameTimeSeconds, frameTimeMilliseconds);
+
+			foreach (var frame in frames)
+			{
+				Console.Clear();
+				Console.Write(frame);
+				Thread.Sleep(frameTime);
+			}
+		}
+
+		private static string[] FramesToMonochromeStrings(
+			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, int width, int height)
+		{
+			var working = new List<string>();
+			foreach (var frame in frames)
+			{
+				var currentFrame  = frame as KeyValuePair<Coordinate, ColouredCharacter>[] ?? frame.ToArray();
+				var stringBuilder = new StringBuilder();
+				for (var y = 0; y < height; y++)
+				{
+					for (var x = 0; x < width; x++)
+						stringBuilder.Append(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value.Character);
+					stringBuilder.AppendLine();
+				}
+
+				working.Add(stringBuilder.ToString());
+			}
+
+			return working.ToArray();
 		}
 	}
 }
