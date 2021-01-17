@@ -27,8 +27,8 @@ namespace ConsoleVideoPlayer.Img2Text
 			var resizedImage = ResizeImage(targetWidth.Value, targetHeight.Value, processor);
 
 			var working = new List<KeyValuePair<Coordinate, Color>>();
-			for (var y = 0; y <= targetHeight; y++)
-			for (var x = 0; x <= targetWidth; x++)
+			for (var y = 0; y < targetHeight; y++)
+			for (var x = 0; x < targetWidth; x++)
 				working.Add(new KeyValuePair<Coordinate, Color>(new Coordinate(x, y),
 				                                                resizedImage.ColourFromPixelCoordinate(x, y)));
 

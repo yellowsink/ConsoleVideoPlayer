@@ -1,12 +1,11 @@
 ﻿using System.Drawing;
-using System.Linq;
 using ImageMagick;
 
 namespace ConsoleVideoPlayer.Img2Text
 {
 	public class ImageProcessor
 	{
-		private Color[] _pixels; // Keep this in memory rather than fetching it each time.
+		private IPixelCollection<ushort> _pixels; // Keep this in memory rather than fetching it each time.
 
 		/// <summary>
 		///     The path of the image in use
@@ -19,13 +18,11 @@ namespace ConsoleVideoPlayer.Img2Text
 		public Color ColourFromPixelCoordinate(int x, int y)
 		{
 			PopulatePixelsIfEmpty();
-			var pixel = _pixels[CoordinateToIndex(x, y, Image.Width)];
-			return pixel;
+			var pixel = _pixels.GetPixel(x, y);
+			return ColourFromPixel(pixel);
 		}
 
-		public void PopulatePixelsIfEmpty() => _pixels ??= Image.GetPixels().Select(ColourFromPixel).ToArray();
-
-		private static int CoordinateToIndex(int x, int y, int imageWidth) => x / imageWidth + y + x % imageWidth;
+		public void PopulatePixelsIfEmpty() => _pixels ??= Image.GetPixels();
 
 		/// <summary>
 		///     Gets the colour of an ImageMagick pixel

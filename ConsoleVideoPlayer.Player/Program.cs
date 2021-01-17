@@ -136,9 +136,9 @@ namespace ConsoleVideoPlayer.Player
 			// 	WriteColouredChar(character);
 			// }
 			var currentFrame = frame as KeyValuePair<Coordinate, ColouredCharacter>[] ?? frame.ToArray();
-			for (var y = 0; y <= height; y++)
+			for (var y = 0; y < height; y++)
 			{
-				for (var x = 0; x <= width; x++)
+				for (var x = 0; x < width; x++)
 					WriteColouredChar(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value);
 				Console.WriteLine();
 			}
