@@ -174,13 +174,17 @@ namespace ConsoleVideoPlayer.Player
 			}
 		}
 
-		private static void PlayAllFramesMonochrome(IEnumerable<string> frames, double frameRate)
+		private static void PlayAllFramesMonochrome(IEnumerable<string> frames, double frameRate,
+		                                            int                 latencyCorrectionMs = 15)
 		{
 			var frameTimeRawSeconds   = 1 / frameRate;
 			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
 			var frameTimeMilliseconds = (int) ((frameTimeRawSeconds - frameTimeSeconds) * 1000);
 
 			var frameTime = new TimeSpan(0, 0, 0, frameTimeSeconds, frameTimeMilliseconds);
+			var correctedFrameTime = frameTime.TotalMilliseconds > latencyCorrectionMs
+				                         ? frameTime.Subtract(new TimeSpan(0, 0, 0, 0, latencyCorrectionMs))
+				                         : frameTime;
 
 			Console.CursorVisible = false;
 
@@ -189,7 +193,7 @@ namespace ConsoleVideoPlayer.Player
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
 				Console.Write(frame);
-				Thread.Sleep(frameTime);
+				Thread.Sleep(correctedFrameTime);
 			}
 
 			Console.CursorVisible = true;
