@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,58 +16,77 @@ namespace ConsoleVideoPlayer.Player
 {
 	internal class Program
 	{
-		private static string TempDir;
+		private static string _tempDir;
 
-		private static void Main(string[] args)
-		{
+		private static void Main(string[] args) =>
 			MainAsync(args).GetAwaiter()
-			               .GetResult(); // Do it like this instead of .Wait() to stop exceptions from being wrapped into an AggregateException
-		}
+				.GetResult(); // Do it like this instead of .Wait() to stop exceptions from being wrapped into an AggregateException
 
 		private static async Task MainAsync(IEnumerable<string> args)
 		{
 			var processedArgs = ProcessArgs(args);
-			if (processedArgs.Help || string.IsNullOrWhiteSpace(processedArgs.VideoPath))
-			{
-				Help();
+			if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
 				return;
+
+			var targetWidth  = processedArgs.Width;
+			var targetHeight = processedArgs.Height;
+
+			var saveAscii = !string.IsNullOrWhiteSpace(processedArgs.AsciiSavePath);
+
+			_tempDir = processedArgs.TempFolderPath ??
+			           Path.Combine(
+				           Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+				           @"ConsoleVideoPlayer-Temp");
+			
+			string[] frames;
+			string audioPath;
+			double frameRate;
+
+			if (!processedArgs.UseSavedFrames)
+			{
+				var preProcessResult = await PreProcess(processedArgs.VideoPath);
+				var asciiArt = ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"), targetWidth, targetHeight);
+				frames = OptimiseFrames(asciiArt, targetWidth, targetHeight);
+
+				audioPath = preProcessResult.AudioPath;
+				frameRate = preProcessResult.Metadata.VideoStreams.First().Framerate;
+				
+				if (saveAscii)
+				{
+					var audioBytes = await File.ReadAllBytesAsync(audioPath);
+					new SavedFrames
+					{
+						Frames = frames,
+						Framerate = frameRate,
+						Audio = audioBytes
+					}.Save(processedArgs.AsciiSavePath);
+					Console.WriteLine($"Saved the converted video to {processedArgs.AsciiSavePath}.");
+					Directory.Delete(_tempDir, true);
+					return;
+				}
+
+				Console.Write("Ready to play video! Press enter to begin playback.");
+				Console.ReadLine();
 			}
-
-			TempDir = processedArgs.TempFolderPath ??
-			          Path.Combine(
-			                       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			                       @"Temp/Cain Atkinson/ConsoleVideoPlayer");
-
-			var targetWidth  = 128;
-			var targetHeight = 72;
-
-			var preProcessResult = await PreProcess(processedArgs.VideoPath);
-			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "raw_frames"), targetWidth, targetHeight);
-			var monochromeFrames = OptimiseFrames(asciiArt, targetWidth, targetHeight);
-
-			Console.Write("Ready to play video! Press enter to begin playback.");
-			Console.ReadLine();
+			else
+			{
+				var savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
+				frames = savedFrames.Frames;
+				frameRate = savedFrames.Framerate;
+				audioPath = Path.Join(_tempDir, "audio.wav");
+				await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
+			}
+			
 			Console.Clear();
-
-
+			
+			// disable warning as i don't want to await this - i want the execution to just continue!
 #pragma warning disable 4014
-			new NetCoreAudio.Player().Play(preProcessResult.AudioPath);
+			new NetCoreAudio.Player().Play(audioPath);
 #pragma warning restore 4014
 
-			var firstVideoStream = preProcessResult.Metadata.VideoStreams.First();
-			PlayAllFrames(monochromeFrames, firstVideoStream.Framerate);
-			
-			Directory.Delete(TempDir, true);
-		}
+			PlayAllFrames(frames, frameRate);
 
-		private static void Help()
-		{
-			Console.WriteLine(@"ConsoleVideoPlayer Help
--v, --video:                 Specify the location of the video to play
--t, --tempfolder (optional): Specify a temporary folder to use
--h, --help:                  Show this page");
-			Console.WriteLine(
-			                  "The width and height set are in 16:9. Videos at other ratios will be STRETCHED NOT LETTERBOXED");
+			Directory.Delete(_tempDir, true);
 		}
 
 		private static Args ProcessArgs(IEnumerable<string> rawArgs)
@@ -84,12 +104,12 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task<PreProcessResult> PreProcess(string path)
 		{
-			var processor = new PreProcessor {VideoPath = path, TempFolder = TempDir};
+			var processor = new PreProcessor {VideoPath = path, TempFolder = _tempDir};
 			Console.WriteLine("Reading metadata");
 			await processor.PopulateMetadata();
 			Console.WriteLine("Preparing to pre-process");
-			PreProcessor.CleanupTempDir(TempDir);
-			Directory.CreateDirectory(TempDir);
+			PreProcessor.CleanupTempDir(_tempDir);
+			Directory.CreateDirectory(_tempDir);
 			Console.Write("Extracting Audio... ");
 			var audioPath = await processor.ExtractAudio();
 			Console.WriteLine("Done");

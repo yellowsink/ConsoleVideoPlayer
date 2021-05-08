@@ -4,13 +4,23 @@ namespace ConsoleVideoPlayer.Player
 {
 	public class Args
 	{
-		[Option('r', "read", Required = false)]
-		public bool Help { get; set; }
 
 		[Option('v', "video", Required = true)]
 		public string VideoPath { get; set; }
 
 		[Option('t', "tempfolder", Required = false)]
 		public string TempFolderPath { get; set; }
+
+		[Option('h', "height", Required = false)]
+		public int Height { get; set; } = 72;
+
+		[Option('w', "width", Required = false)]
+		public int Width { get; set; } = 128;
+		
+		[Option('s', "asciiSavePath", Required = false)]
+		public string AsciiSavePath { get; set; }
+
+		[Option('a', "useSavedFrames", Required = false)]
+		public bool UseSavedFrames { get; set; }
 	}
 }
