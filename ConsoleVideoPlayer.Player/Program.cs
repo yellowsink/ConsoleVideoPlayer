@@ -161,11 +161,15 @@ namespace ConsoleVideoPlayer.Player
 				var renderTime = (DateTime.Now - startTime).TotalMilliseconds;
 				// the amount of time we need to compensate for
 				var makeupTarget = renderTime + timeDebt;
+				// reset the time debt as we'll add back to it later on :)
+				timeDebt = 0;
 				// the maximum possible correction to apply this frame
 				var correction = Math.Min(makeupTarget, frameTime);
 				// if we can't fully make up time try to do it later
 				if (makeupTarget > frameTime)
 					timeDebt += frameTime - makeupTarget;
+
+				// compensate for the rounding by adding it to the time debt
 				var toWait = frameTime - correction;
 				timeDebt += toWait - Math.Floor(toWait);
 				// work out the new time to wait
