@@ -129,7 +129,7 @@ namespace ConsoleVideoPlayer.Player
 			var working = new List<IEnumerable<((int, int), Color, Color)>>();
 			var files = new DirectoryInfo(imageDirectory) // the directory
 				.EnumerateFiles() // get all files
-				.OrderBy(f => f.Name); // put them in order!!!
+				.OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)])); // put them in order!!!
 			foreach (var file in files)
 			{
 				var converter = new Converter {ImagePath = file.FullName};
