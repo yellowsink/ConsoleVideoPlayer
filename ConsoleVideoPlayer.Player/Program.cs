@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -40,8 +41,7 @@ namespace ConsoleVideoPlayer.Player
 			var targetHeight = 48;
 
 			var preProcessResult = await PreProcess(processedArgs.VideoPath);
-			// ResizeAllImages(Path.Combine(TempDir, "Split Images"), Path.Combine(TempDir, "Resized Images"), targetWidth, targetHeight, true);
-			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
+			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "raw_frames"), targetWidth, targetHeight);
 			var monochromeFrames = OptimiseFrames(asciiArt, targetWidth, targetHeight);
 
 			Console.Write("Ready to play video! Press enter to begin playback.");
@@ -55,6 +55,8 @@ namespace ConsoleVideoPlayer.Player
 
 			var firstVideoStream = preProcessResult.Metadata.VideoStreams.First();
 			PlayAllFrames(monochromeFrames, firstVideoStream.Framerate);
+			
+			Directory.Delete(TempDir, true);
 		}
 
 		private static void Help()
@@ -86,12 +88,12 @@ namespace ConsoleVideoPlayer.Player
 			Console.WriteLine("Reading metadata");
 			await processor.PopulateMetadata();
 			Console.WriteLine("Preparing to pre-process");
-			processor.CleanupTempDir(TempDir);
+			PreProcessor.CleanupTempDir(TempDir);
 			Directory.CreateDirectory(TempDir);
 			Console.Write("Extracting Audio... ");
 			var audioPath = await processor.ExtractAudio();
 			Console.WriteLine("Done");
-			Console.Write("Splitting into images, this may take a while... ");
+			Console.Write("Splitting into images, this may use a lot of disk space... ");
 			await processor.SplitVideoIntoImages();
 			Console.WriteLine("Done");
 			Console.WriteLine("pre-processing complete");
@@ -99,36 +101,19 @@ namespace ConsoleVideoPlayer.Player
 			return new PreProcessResult {Metadata = processor.Metadata, AudioPath = audioPath};
 		}
 
-		private static void ResizeAllImages(string inputDir, string outDir, int targetWidth, int targetHeight,
-		                                    bool   overwrite = false)
-		{
-			if (overwrite)
-				try
-				{
-					Directory.Delete(outDir, true);
-				}
-				catch
-				{
-					// ignored
-				}
-
-			foreach (var file in new DirectoryInfo(inputDir).EnumerateFiles())
-			{
-				var converter = new Converter {ImagePath = file.FullName};
-				converter.WriteResizedImage(targetWidth, targetHeight, outDir);
-			}
-		}
-
-		private static KeyValuePair<Coordinate, ColouredCharacter>[][] ConvertAllImagesToAscii(
+		private static ((int, int), Color, Color)[][] ConvertAllImagesToAscii(
 			string imageDirectory, int targetWidth, int targetHeight)
 		{
 			Console.Write("Converting all images to ASCII art, this may take a while... ");
 
-			var working = new List<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>>();
-			foreach (var file in new DirectoryInfo(imageDirectory).EnumerateFiles())
+			var working = new List<IEnumerable<((int, int), Color, Color)>>();
+			var files = new DirectoryInfo(imageDirectory) // the directory
+				.EnumerateFiles() // get all files
+				.OrderBy(f => f.Name); // put them in order!!!
+			foreach (var file in files)
 			{
 				var converter = new Converter {ImagePath = file.FullName};
-				var ascii     = converter.FullProcessImage(targetWidth, targetHeight);
+				var ascii     = converter.ProcessImage(targetWidth, targetHeight);
 				working.Add(ascii);
 			}
 
@@ -174,7 +159,7 @@ namespace ConsoleVideoPlayer.Player
 		}
 
 		private static string[] OptimiseFrames(
-			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, int width, int height,
+			IEnumerable<IEnumerable<((int, int), Color, Color)>> frames, int width, int height,
 			bool                                                                  ratioCorrection = true)
 		{
 			Console.Write("Optimising frames and generating colour... ");
@@ -182,20 +167,21 @@ namespace ConsoleVideoPlayer.Player
 			var working = new List<string>();
 			foreach (var frame in frames)
 			{
-				var currentFrame  = frame as KeyValuePair<Coordinate, ColouredCharacter>[] ?? frame.ToArray();
+				var currentFrame  = frame as ((int, int), Color, Color)[] ?? frame.ToArray();
 				var stringBuilder = new StringBuilder();
-				for (var y = 0; y < height; y++)
+				for (var y = 0; y < height; y += 2)
 				{
 					for (var x = 0; x < width; x++)
 					{
-						var colouredCharacter = currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value;
-						var r = colouredCharacter.Colour.R.ToString();
-						var g = colouredCharacter.Colour.G.ToString();
-						var b = colouredCharacter.Colour.B.ToString();
-						stringBuilder.Append($"\u001b[38;2;{r};{g};{b}m"); // Add ANSI escape sequence for colour :)
-						stringBuilder.Append(colouredCharacter.Character);
-						if (ratioCorrection)
-							stringBuilder.Append(colouredCharacter.Character);
+						var (_, topColor, btmColor) = currentFrame.First(f => f.Item1.Item1 == x && f.Item1.Item2 == y);
+						var topR = topColor.R.ToString();
+						var topG = topColor.G.ToString();
+						var topB = topColor.B.ToString();
+						var btmR = btmColor.R.ToString();
+						var btmG = btmColor.G.ToString();
+						var btmB = btmColor.B.ToString();
+						stringBuilder.Append($"\u001b[38;2;{topR};{topG};{topB};48;2;{btmR};{btmG};{btmB}m"); // Add ANSI escape sequence for colour :)
+						stringBuilder.Append('▀');
 					}
 
 					stringBuilder.AppendLine();

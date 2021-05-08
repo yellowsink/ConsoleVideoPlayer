@@ -31,9 +31,9 @@ namespace ConsoleVideoPlayer.Img2Text
 		{
 			var colour = pixel.ToColor();
 
-			int ScaleColour(ushort unscaled)
+			static int ScaleColour(ushort unscaled)
 			{
-				var scaleFactor = ushort.MaxValue / 255;
+				const int scaleFactor = ushort.MaxValue / 255;
 				return unscaled / scaleFactor;
 			}
 

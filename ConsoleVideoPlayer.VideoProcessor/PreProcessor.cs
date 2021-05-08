@@ -51,7 +51,7 @@ namespace ConsoleVideoPlayer.VideoProcessor
 		/// <returns>The path to the folder containing the images</returns>
 		public async Task<string> SplitVideoIntoImages(bool overwrite = false)
 		{
-			var destination = Path.Combine(TempFolder, "Split Images");
+			var destination = Path.Combine(TempFolder, "raw_frames");
 			await SplitVideoIntoImages(destination, overwrite);
 			return destination;
 		}
@@ -64,10 +64,10 @@ namespace ConsoleVideoPlayer.VideoProcessor
 			if (overwrite) Directory.Delete(destination, true);
 			Directory.CreateDirectory(destination);
 
-			string OutputFileNameBuilder(string i) => $"\"{Path.Combine(destination, $"image{i}.png")}\"";
+			string OutputFileNameBuilder(string i) => $"\"{Path.Combine(destination, $"image{i}.bmp")}\"";
 
 			var info        = await FFmpeg.GetMediaInfo(VideoPath).ConfigureAwait(false);
-			var videoStream = info.VideoStreams.First()?.SetCodec(VideoCodec.png);
+			var videoStream = info.VideoStreams.First()?.SetCodec(VideoCodec.bmp);
 
 			await FFmpeg.Conversions.New()
 			            .AddStream(videoStream)
@@ -75,7 +75,7 @@ namespace ConsoleVideoPlayer.VideoProcessor
 			            .Start();
 		}
 
-		public void CleanupTempDir(string tempDir)
+		public static void CleanupTempDir(string tempDir)
 		{
 			try
 			{
