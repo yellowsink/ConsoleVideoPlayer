@@ -96,19 +96,22 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task<(IMediaInfo, string)> PreProcess(string path)
 		{
+			var startTime = DateTime.Now;
+			
 			var processor = new PreProcessor {VideoPath = path, TempFolder = _tempDir};
-			Console.WriteLine("Reading metadata");
+			Console.Write("Reading metadata... ");
 			await processor.PopulateMetadata();
-			Console.WriteLine("Preparing to pre-process");
+			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMilliseconds)}ms");
+			Console.Write("Preparing to pre-process... ");
 			PreProcessor.CleanupTempDir(_tempDir);
 			Directory.CreateDirectory(_tempDir);
+			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMilliseconds)}ms");
 			Console.Write("Extracting Audio... ");
 			var audioPath = await processor.ExtractAudio();
-			Console.WriteLine("Done");
+			Console.WriteLine($"Done in {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
 			Console.Write("Splitting into images, this may use a lot of disk space... ");
 			await processor.SplitVideoIntoImages();
-			Console.WriteLine("Done");
-			Console.WriteLine("pre-processing complete");
+			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
 
 			return (processor.Metadata, audioPath);
 		}
@@ -116,6 +119,8 @@ namespace ConsoleVideoPlayer.Player
 		private static string[] ConvertAllImagesToAscii(
 			string imageDirectory, int targetWidth, int targetHeight)
 		{
+			var startTime = DateTime.Now;
+			
 			Console.Write("Converting all images to ASCII art, this may take a while... ");
 
 			var working = new List<string>();
@@ -129,7 +134,7 @@ namespace ConsoleVideoPlayer.Player
 				working.Add(ascii);
 			}
 
-			Console.WriteLine("Done");
+			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {(DateTime.Now - startTime).TotalSeconds}s");
 
 			return working.ToArray();
 		}
