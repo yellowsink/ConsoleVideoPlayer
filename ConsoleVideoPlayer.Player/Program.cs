@@ -37,8 +37,8 @@ namespace ConsoleVideoPlayer.Player
 			                       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 			                       @"Temp/Cain Atkinson/ConsoleVideoPlayer");
 
-			var targetWidth  = 64;
-			var targetHeight = 48;
+			var targetWidth  = 128;
+			var targetHeight = 72;
 
 			var preProcessResult = await PreProcess(processedArgs.VideoPath);
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "raw_frames"), targetWidth, targetHeight);
@@ -159,8 +159,7 @@ namespace ConsoleVideoPlayer.Player
 		}
 
 		private static string[] OptimiseFrames(
-			IEnumerable<IEnumerable<((int, int), Color, Color)>> frames, int width, int height,
-			bool                                                                  ratioCorrection = true)
+			IEnumerable<IEnumerable<((int, int), Color, Color)>> frames, int width, int height)
 		{
 			Console.Write("Optimising frames and generating colour... ");
 
