@@ -77,7 +77,7 @@ namespace ConsoleVideoPlayer.Img2Text
 				working.Add(new KeyValuePair<Coordinate, ColouredCharacter>(coordinate, new ColouredCharacter
 				{
 					Character = intensityChar,
-					Colour    = colour.ClosestConsoleColor()
+					Colour    = colour
 				}));
 			}
 
@@ -88,7 +88,7 @@ namespace ConsoleVideoPlayer.Img2Text
 	public class ColouredCharacter
 	{
 		public char         Character;
-		public ConsoleColor Colour;
+		public Color Colour;
 	}
 
 	public class Coordinate

@@ -34,7 +34,7 @@ namespace ConsoleVideoPlayer.Player
 			TempDir = processedArgs.TempFolderPath ??
 			          Path.Combine(
 			                       Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			                       @"Temp\Cain Atkinson\ConsoleVideoPlayer");
+			                       @"Temp/Cain Atkinson/ConsoleVideoPlayer");
 
 			var targetWidth  = 64;
 			var targetHeight = 48;
@@ -42,7 +42,7 @@ namespace ConsoleVideoPlayer.Player
 			var preProcessResult = await PreProcess(processedArgs.VideoPath);
 			// ResizeAllImages(Path.Combine(TempDir, "Split Images"), Path.Combine(TempDir, "Resized Images"), targetWidth, targetHeight, true);
 			var asciiArt = ConvertAllImagesToAscii(Path.Combine(TempDir, "Split Images"), targetWidth, targetHeight);
-			var monochromeFrames = FramesToMonochromeStrings(asciiArt, targetWidth, targetHeight);
+			var monochromeFrames = OptimiseFrames(asciiArt, targetWidth, targetHeight);
 
 			Console.Write("Ready to play video! Press enter to begin playback.");
 			Console.ReadLine();
@@ -54,8 +54,7 @@ namespace ConsoleVideoPlayer.Player
 #pragma warning restore 4014
 
 			var firstVideoStream = preProcessResult.Metadata.VideoStreams.First();
-			PlayAllFramesMonochrome(monochromeFrames, firstVideoStream.Framerate);
-			//PlayAllFrames(asciiArt, firstVideoStream.Framerate, targetWidth, targetHeight);
+			PlayAllFrames(monochromeFrames, firstVideoStream.Framerate);
 		}
 
 		private static void Help()
@@ -138,72 +137,47 @@ namespace ConsoleVideoPlayer.Player
 			return working.Select(a => a.ToArray()).ToArray();
 		}
 
-		private static void WriteColouredChar(ColouredCharacter colouredChar)
+		private static void PlayAllFrames(IEnumerable<string> frames, double frameRate)
 		{
-			Console.ForegroundColor = colouredChar.Colour;
-			Console.Write(colouredChar.Character);
-			Console.ResetColor();
-		}
+			var frameTime   = 1000 / frameRate;
 
-		private static void WriteAsciiFrame(IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>> frame, int width,
-		                                    int                                                      height)
-		{
-			var currentFrame = frame as KeyValuePair<Coordinate, ColouredCharacter>[] ?? frame.ToArray();
-			for (var y = 0; y < height; y++)
-			{
-				for (var x = 0; x < width; x++)
-					WriteColouredChar(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value);
-				Console.WriteLine();
-			}
-		}
-
-		private static void PlayAllFrames(IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames,
-		                                  double frameRate, int width, int height)
-		{
-			var frameTimeRawSeconds   = 1 / frameRate;
-			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
-			var frameTimeMilliseconds = (int) ((frameTimeRawSeconds - frameTimeSeconds) * 1000);
-
-			var frameTime = new TimeSpan(0, 0, 0, frameTimeSeconds, frameTimeMilliseconds);
-
-			foreach (var frame in frames)
-			{
-				Console.Clear();
-				WriteAsciiFrame(frame, width, height);
-				Thread.Sleep(frameTime);
-			}
-		}
-
-		private static void PlayAllFramesMonochrome(IEnumerable<string> frames, double frameRate,
-		                                            int                 latencyCorrectionMs = 13)
-		{
-			var frameTimeRawSeconds   = 1 / frameRate;
-			var frameTimeSeconds      = (int) Math.Floor(frameTimeRawSeconds);
-			var frameTimeMilliseconds = (int) ((frameTimeRawSeconds - frameTimeSeconds) * 1000);
-
-			var frameTime = new TimeSpan(0, 0, 0, frameTimeSeconds, frameTimeMilliseconds);
-			var correctedFrameTime = frameTime.TotalMilliseconds > latencyCorrectionMs
-				                         ? frameTime.Subtract(new TimeSpan(0, 0, 0, 0, latencyCorrectionMs))
-				                         : frameTime;
-
+			var timeDebt = 0d;
+			
 			Console.CursorVisible = false;
 
 			foreach (var frame in frames)
 			{
+				// setup for measuring later
+				var startTime = DateTime.Now;
+				
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
 				Console.Write(frame);
-				Thread.Sleep(correctedFrameTime);
+				
+				// measure the time rendering took
+				var renderTime = (DateTime.Now - startTime).TotalMilliseconds;
+				// the amount of time we need to compensate for
+				var makeupTarget = renderTime + timeDebt;
+				// the maximum possible correction to apply this frame
+				var correction = Math.Min(makeupTarget, frameTime);
+				// if we can't fully make up time try to do it later
+				if (makeupTarget > frameTime)
+					timeDebt += frameTime - makeupTarget;
+				// work out the new time to wait
+				var correctedFrameTime = Convert.ToInt32(Math.Round(frameTime - correction));
+			
+				// wait for it!
+				Thread.Sleep(new TimeSpan(0, 0, 0, 0, correctedFrameTime));
 			}
 
 			Console.CursorVisible = true;
 		}
 
-		private static string[] FramesToMonochromeStrings(
+		private static string[] OptimiseFrames(
 			IEnumerable<IEnumerable<KeyValuePair<Coordinate, ColouredCharacter>>> frames, int width, int height,
 			bool                                                                  ratioCorrection = true)
 		{
-			Console.Write("Optimising frames for playback... ");
+			Console.Write("Optimising frames and generating colour... ");
 
 			var working = new List<string>();
 			foreach (var frame in frames)
@@ -214,9 +188,14 @@ namespace ConsoleVideoPlayer.Player
 				{
 					for (var x = 0; x < width; x++)
 					{
-						stringBuilder.Append(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value.Character);
+						var colouredCharacter = currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value;
+						var r = colouredCharacter.Colour.R.ToString();
+						var g = colouredCharacter.Colour.G.ToString();
+						var b = colouredCharacter.Colour.B.ToString();
+						stringBuilder.Append($"\u001b[38;2;{r};{g};{b}m"); // Add ANSI escape sequence for colour :)
+						stringBuilder.Append(colouredCharacter.Character);
 						if (ratioCorrection)
-							stringBuilder.Append(currentFrame.First(f => f.Key.X == x && f.Key.Y == y).Value.Character);
+							stringBuilder.Append(colouredCharacter.Character);
 					}
 
 					stringBuilder.AppendLine();
