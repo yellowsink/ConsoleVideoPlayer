@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Drawing;
-using System.IO;
+﻿using System.Text;
 using ImageMagick;
 
 namespace ConsoleVideoPlayer.Img2Text
@@ -9,7 +7,7 @@ namespace ConsoleVideoPlayer.Img2Text
     {
         public string ImagePath { get; init; }
 
-        public ((int, int), Color, Color)[] ProcessImage(int? targetWidth = null, int? targetHeight = null)
+        public string ProcessImage(int? targetWidth = null, int? targetHeight = null)
         {
             var img = new MagickImage(ImagePath);
             targetWidth ??= img.BaseWidth;
@@ -17,29 +15,28 @@ namespace ConsoleVideoPlayer.Img2Text
             var processor = new ImageProcessor {Image = new MagickImage(ImagePath)};
             var resizedImage = ResizeImage(targetWidth.Value, targetHeight.Value, processor);
 
-            var working = new List<((int, int), Color, Color)>();
-            for (var y = 0; y < targetHeight; y+=2)
-            for (var x = 0; x < targetWidth; x++)
-                working.Add((
-                    (x, y),
-                    resizedImage.ColourFromPixelCoordinate(x, y),
-                    resizedImage.ColourFromPixelCoordinate(x, y + 1)
-                    ));
+            var working = new StringBuilder();
+            for (var y = 0; y < targetHeight; y += 2)
+            {
+                for (var x = 0; x < targetWidth; x++)
+                {
+                    var topCol = resizedImage.ColourFromPixelCoordinate(x, y);
+                    var btmCol = resizedImage.ColourFromPixelCoordinate(x, y + 1);
+                
+                    var topR = topCol.R.ToString();
+                    var topG = topCol.G.ToString();
+                    var topB = topCol.B.ToString();
+                    var btmR = btmCol.R.ToString();
+                    var btmG = btmCol.G.ToString();
+                    var btmB = btmCol.B.ToString();
+                
+                    working.Append($"\u001b[38;2;{topR};{topG};{topB};48;2;{btmR};{btmG};{btmB}m"); // Add ANSI escape sequence for colour :)
+                    working.Append('▀');
+                }
+                working.Append('\n');
+            }
 
-            return working.ToArray();
-        }
-
-        public void WriteResizedImage(int targetWidth, int targetHeight, string outDir,
-            string fileName = null)
-        {
-            Directory.CreateDirectory(outDir);
-
-            var imgProc = new ImageProcessor {Image = new MagickImage(ImagePath)};
-
-            fileName ??= new FileInfo(imgProc.Image.FileName).Name;
-
-            var resized = ResizeImage(targetWidth, targetHeight, imgProc);
-            resized.Image.Write(Path.Combine(outDir, fileName));
+            return working.ToString();
         }
 
         private static ImageProcessor ResizeImage(int targetWidth, int targetHeight, ImageProcessor processor)

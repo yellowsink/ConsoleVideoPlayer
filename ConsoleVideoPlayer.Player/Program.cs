@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
@@ -44,11 +42,10 @@ namespace ConsoleVideoPlayer.Player
 			if (!processedArgs.UseSavedFrames)
 			{
 				var preProcessResult = await PreProcess(processedArgs.VideoPath);
-				var asciiArt = ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"), targetWidth, targetHeight);
-				frames = OptimiseFrames(asciiArt, targetWidth, targetHeight);
+				frames = ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"), targetWidth, targetHeight);
 
-				audioPath = preProcessResult.AudioPath;
-				frameRate = preProcessResult.Metadata.VideoStreams.First().Framerate;
+				audioPath = preProcessResult.Item2;
+				frameRate = preProcessResult.Item1.VideoStreams.First().Framerate;
 				
 				if (saveAscii)
 				{
@@ -96,13 +93,8 @@ namespace ConsoleVideoPlayer.Player
 			return processedArgs;
 		}
 
-		private class PreProcessResult
-		{
-			public IMediaInfo Metadata  { get; set; }
-			public string     AudioPath { get; set; }
-		}
 
-		private static async Task<PreProcessResult> PreProcess(string path)
+		private static async Task<(IMediaInfo, string)> PreProcess(string path)
 		{
 			var processor = new PreProcessor {VideoPath = path, TempFolder = _tempDir};
 			Console.WriteLine("Reading metadata");
@@ -118,15 +110,15 @@ namespace ConsoleVideoPlayer.Player
 			Console.WriteLine("Done");
 			Console.WriteLine("pre-processing complete");
 
-			return new PreProcessResult {Metadata = processor.Metadata, AudioPath = audioPath};
+			return (processor.Metadata, audioPath);
 		}
 
-		private static ((int, int), Color, Color)[][] ConvertAllImagesToAscii(
+		private static string[] ConvertAllImagesToAscii(
 			string imageDirectory, int targetWidth, int targetHeight)
 		{
 			Console.Write("Converting all images to ASCII art, this may take a while... ");
 
-			var working = new List<IEnumerable<((int, int), Color, Color)>>();
+			var working = new List<string>();
 			var files = new DirectoryInfo(imageDirectory) // the directory
 				.EnumerateFiles() // get all files
 				.OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)])); // put them in order!!!
@@ -139,7 +131,7 @@ namespace ConsoleVideoPlayer.Player
 
 			Console.WriteLine("Done");
 
-			return working.Select(a => a.ToArray()).ToArray();
+			return working.ToArray();
 		}
 
 		private static void PlayAllFrames(IEnumerable<string> frames, double frameRate)
@@ -176,42 +168,6 @@ namespace ConsoleVideoPlayer.Player
 			}
 
 			Console.CursorVisible = true;
-		}
-
-		private static string[] OptimiseFrames(
-			IEnumerable<IEnumerable<((int, int), Color, Color)>> frames, int width, int height)
-		{
-			Console.Write("Optimising frames and generating colour... ");
-
-			var working = new List<string>();
-			foreach (var frame in frames)
-			{
-				var currentFrame  = frame as ((int, int), Color, Color)[] ?? frame.ToArray();
-				var stringBuilder = new StringBuilder();
-				for (var y = 0; y < height; y += 2)
-				{
-					for (var x = 0; x < width; x++)
-					{
-						var (_, topColor, btmColor) = currentFrame.First(f => f.Item1.Item1 == x && f.Item1.Item2 == y);
-						var topR = topColor.R.ToString();
-						var topG = topColor.G.ToString();
-						var topB = topColor.B.ToString();
-						var btmR = btmColor.R.ToString();
-						var btmG = btmColor.G.ToString();
-						var btmB = btmColor.B.ToString();
-						stringBuilder.Append($"\u001b[38;2;{topR};{topG};{topB};48;2;{btmR};{btmG};{btmB}m"); // Add ANSI escape sequence for colour :)
-						stringBuilder.Append('▀');
-					}
-
-					stringBuilder.AppendLine();
-				}
-
-				working.Add(stringBuilder.ToString());
-			}
-
-			Console.WriteLine("Done");
-
-			return working.ToArray();
 		}
 	}
 }
