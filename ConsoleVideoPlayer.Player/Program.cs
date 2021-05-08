@@ -56,12 +56,13 @@ namespace ConsoleVideoPlayer.Player
 						Framerate = frameRate,
 						Audio = audioBytes
 					}.Save(processedArgs.AsciiSavePath);
-					Console.WriteLine($"Saved the converted video to {processedArgs.AsciiSavePath}.");
+					Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
+					Console.CursorVisible = true;
 					Directory.Delete(_tempDir, true);
 					return;
 				}
 
-				Console.Write("Ready to play video! Press enter to begin playback.");
+				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
 			}
 			else
@@ -99,19 +100,19 @@ namespace ConsoleVideoPlayer.Player
 			var startTime = DateTime.Now;
 			
 			var processor = new PreProcessor {VideoPath = path, TempFolder = _tempDir};
-			Console.Write("Reading metadata... ");
+			Console.Write("Reading metadata             ");
 			await processor.PopulateMetadata();
 			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMilliseconds)}ms");
-			Console.Write("Preparing to pre-process... ");
+			Console.Write("Preparing to pre-process     ");
 			PreProcessor.CleanupTempDir(_tempDir);
 			Directory.CreateDirectory(_tempDir);
 			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMilliseconds)}ms");
-			Console.Write("Extracting Audio... ");
+			Console.Write("Extracting Audio             ");
 			var audioPath = await processor.ExtractAudio();
 			Console.WriteLine($"Done in {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
-			Console.Write("Splitting into images, this may use a lot of disk space... ");
+			Console.Write("Splitting into images        ");
 			await processor.SplitVideoIntoImages();
-			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
+			Console.WriteLine($"Done in {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
 
 			return (processor.Metadata, audioPath);
 		}
@@ -121,7 +122,7 @@ namespace ConsoleVideoPlayer.Player
 		{
 			var startTime = DateTime.Now;
 			
-			Console.Write("Converting all images to ASCII art, this may take a while... ");
+			Console.Write("Creating ASCII art           ");
 
 			var working = new List<string>();
 			var files = new DirectoryInfo(imageDirectory) // the directory
@@ -134,7 +135,7 @@ namespace ConsoleVideoPlayer.Player
 				working.Add(ascii);
 			}
 
-			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {(DateTime.Now - startTime).TotalSeconds}s");
+			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {(DateTime.Now - startTime).Seconds}s");
 
 			return working.ToArray();
 		}
