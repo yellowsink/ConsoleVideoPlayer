@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,6 +73,7 @@ namespace ConsoleVideoPlayer.Player
 				frames = savedFrames.Frames;
 				frameRate = savedFrames.Framerate;
 				audioPath = Path.Join(_tempDir, "audio.wav");
+				Directory.CreateDirectory(_tempDir);
 				await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
 			}
 			
