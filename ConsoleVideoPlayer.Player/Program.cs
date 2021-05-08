@@ -166,8 +166,10 @@ namespace ConsoleVideoPlayer.Player
 				// if we can't fully make up time try to do it later
 				if (makeupTarget > frameTime)
 					timeDebt += frameTime - makeupTarget;
+				var toWait = frameTime - correction;
+				timeDebt += toWait - Math.Floor(toWait);
 				// work out the new time to wait
-				var correctedFrameTime = Convert.ToInt32(Math.Round(frameTime - correction));
+				var correctedFrameTime = Convert.ToInt32(Math.Floor(toWait));
 			
 				// wait for it!
 				Thread.Sleep(new TimeSpan(0, 0, 0, 0, correctedFrameTime));
