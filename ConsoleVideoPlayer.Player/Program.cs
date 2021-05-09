@@ -22,7 +22,6 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task MainAsync(IEnumerable<string> args)
 		{
-			Console.ReadLine();
 			var processedArgs = ProcessArgs(args);
 			if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
 				return;
