@@ -31,7 +31,7 @@ namespace ConsoleVideoPlayer.Player
             targetHeight /= 2;
 
             void RenderFunc(string path)
-                => Process.Start("viu", $"{path} -h {targetHeight}");
+                => Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
 
             GenericPlay(
                 filePaths,
