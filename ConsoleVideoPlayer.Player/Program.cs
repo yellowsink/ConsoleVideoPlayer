@@ -45,6 +45,8 @@ namespace ConsoleVideoPlayer.Player
 
 				if (processedArgs.UseViu)
 				{
+					Console.Write("\nReady to play video! Press enter to begin playback.");
+					Console.ReadLine();
 					ViuPlay(audioPath, frameRate, processedArgs.Height);
 					return;
 				}

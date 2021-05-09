@@ -30,12 +30,12 @@ namespace ConsoleVideoPlayer.Player
             // scale values to represent viu better
             targetHeight /= 2;
 
+            void RenderFunc(string path)
+                => Process.Start("viu", $"{path} -h {targetHeight}");
+
             GenericPlay(
                 filePaths,
-                path =>
-                {
-                    Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
-                },
+                RenderFunc,
                 frameRate);
         }
 
