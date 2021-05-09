@@ -7,30 +7,42 @@ namespace ConsoleVideoPlayer.Player
 {
     public static class Player
     {
+        /// <summary>
+        /// Renders all frames
+        /// </summary>
         public static void PlayAsciiFrames(IEnumerable<string> frames, double frameRate)
         {
             Console.CursorVisible = false;
 
             GenericPlay(
-                Console.Write,
                 frames,
+                Console.Write,
                 frameRate);
             
             Console.CursorVisible = true;
         }
 
+        /// <summary>
+        /// Renders all file paths as images using viu - very slow
+        /// </summary>
         public static void PlayViuFrames(IEnumerable<string> filePaths, double frameRate, int targetHeight)
         {
             // scale values to represent viu better
             targetHeight /= 2;
 
             GenericPlay(
-                path => { Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit(); },
                 filePaths,
+                path =>
+                {
+                    Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
+                },
                 frameRate);
         }
 
-        private static void GenericPlay<T>(Action<T> renderFunc, IEnumerable<T> iterator, double frameRate)
+        /// <summary>
+        /// Executes an arbitrary function for all items in the enumerable, and keeps in time with the framerate
+        /// </summary>
+        private static void GenericPlay<T>(IEnumerable<T> iterator, Action<T> renderFunc, double frameRate)
         {
             var frameTime = 1000 / frameRate;
 
