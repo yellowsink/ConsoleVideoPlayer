@@ -1,7 +1,10 @@
-﻿using CommandLine;
+﻿using System.Diagnostics.CodeAnalysis;
+using CommandLine;
 
 namespace ConsoleVideoPlayer.Player
 {
+	[SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+	[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
 	public class Args
 	{
 
@@ -22,5 +25,8 @@ namespace ConsoleVideoPlayer.Player
 
 		[Option('a', "useSavedFrames", Required = false)]
 		public bool UseSavedFrames { get; set; }
+		
+		[Option('i', "viu", Required = false)]
+		public bool UseViu { get; set; }
 	}
 }

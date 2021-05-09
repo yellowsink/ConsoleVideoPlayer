@@ -11,22 +11,21 @@ using Xabe.FFmpeg;
 
 namespace ConsoleVideoPlayer.Player
 {
-	internal class Program
+	internal static class Program
 	{
 		private static string _tempDir;
 
-		private static void Main(string[] args) =>
-			MainAsync(args).GetAwaiter()
+		private static void Main(string[] args)
+			=> MainAsync(args)
+				.GetAwaiter()
 				.GetResult(); // Do it like this instead of .Wait() to stop exceptions from being wrapped into an AggregateException
 
 		private static async Task MainAsync(IEnumerable<string> args)
 		{
+			Console.ReadLine();
 			var processedArgs = ProcessArgs(args);
 			if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
 				return;
-
-			var targetWidth  = processedArgs.Width;
-			var targetHeight = processedArgs.Height;
 
 			var saveAscii = !string.IsNullOrWhiteSpace(processedArgs.AsciiSavePath);
 
@@ -41,24 +40,21 @@ namespace ConsoleVideoPlayer.Player
 
 			if (!processedArgs.UseSavedFrames)
 			{
-				var preProcessResult = await PreProcess(processedArgs.VideoPath);
-				frames = ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"), targetWidth, targetHeight);
+				var (meta, tempAPath) = await PreProcess(processedArgs.VideoPath);
+				audioPath = tempAPath;
+				frameRate = meta.VideoStreams.First().Framerate;
 
-				audioPath = preProcessResult.Item2;
-				frameRate = preProcessResult.Item1.VideoStreams.First().Framerate;
+				if (processedArgs.UseViu)
+				{
+					ViuPlay(audioPath, frameRate, processedArgs.Height);
+					return;
+				}
 				
+				frames = ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"), processedArgs.Width, processedArgs.Height);
+
 				if (saveAscii)
 				{
-					var audioBytes = await File.ReadAllBytesAsync(audioPath);
-					new SavedFrames
-					{
-						Frames = frames,
-						Framerate = frameRate,
-						Audio = audioBytes
-					}.Save(processedArgs.AsciiSavePath);
-					Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
-					Console.CursorVisible = true;
-					Directory.Delete(_tempDir, true);
+					await AsciiSave(audioPath, frames, frameRate, processedArgs);
 					return;
 				}
 
@@ -67,22 +63,68 @@ namespace ConsoleVideoPlayer.Player
 			}
 			else
 			{
-				var savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
-				frames = savedFrames.Frames;
-				frameRate = savedFrames.Framerate;
-				audioPath = Path.Join(_tempDir, "audio.wav");
-				Directory.CreateDirectory(_tempDir);
-				await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
+				(frames, frameRate, audioPath) = await ReadSaved(processedArgs);
 			}
 			
+			AsciiPlay(audioPath, frames, frameRate);
+		}
+
+		private static async Task<(string[], double, string)> ReadSaved(Args processedArgs)
+		{
+			string[] frames;
+			var savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
+			frames = savedFrames.Frames;
+			var frameRate = savedFrames.Framerate;
+			var audioPath = Path.Join(_tempDir, "audio.wav");
+			Directory.CreateDirectory(_tempDir);
+			await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
+			return (frames, frameRate, audioPath);
+		}
+
+		private static async Task AsciiSave(string audioPath, string[] frames, double frameRate, Args processedArgs)
+		{
+			var audioBytes = await File.ReadAllBytesAsync(audioPath);
+			new SavedFrames
+			{
+				Frames = frames,
+				Framerate = frameRate,
+				Audio = audioBytes
+			}.Save(processedArgs.AsciiSavePath);
+			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
+			Console.CursorVisible = true;
+			Directory.Delete(_tempDir, true);
+		}
+
+		private static void AsciiPlay(string audioPath, IEnumerable<string> frames, double frameRate)
+		{
 			Console.Clear();
-			
+
 			// disable warning as i don't want to await this - i want the execution to just continue!
 #pragma warning disable 4014
 			new NetCoreAudio.Player().Play(audioPath);
 #pragma warning restore 4014
 
-			PlayAllFrames(frames, frameRate);
+			Player.PlayAsciiFrames(frames, frameRate);
+
+			Directory.Delete(_tempDir, true);
+		}
+
+		private static void ViuPlay(string audioPath, double frameRate, int targetHeight)
+		{
+			Console.Clear();
+
+			// disable warning as i don't want to await this - i want the execution to just continue!
+#pragma warning disable 4014
+			new NetCoreAudio.Player().Play(audioPath);
+#pragma warning restore 4014
+
+			var files = new DirectoryInfo(Path.Combine(_tempDir, "raw_frames"))
+				.EnumerateFiles()
+				.OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
+				.Select(f => f.FullName)
+				.ToArray();
+
+			Player.PlayViuFrames(files, frameRate, targetHeight);
 
 			Directory.Delete(_tempDir, true);
 		}
@@ -91,9 +133,21 @@ namespace ConsoleVideoPlayer.Player
 		{
 			var processedArgs = new Args();
 			Parser.Default.ParseArguments<Args>(rawArgs).WithParsed(o => { processedArgs = o; });
+
+			if (processedArgs.UseViu && processedArgs.UseSavedFrames)
+			{
+				Console.WriteLine("Cannot use viu and play saved frames together");
+				Environment.Exit(1);
+			}
+
+			if (processedArgs.UseViu && !string.IsNullOrWhiteSpace(processedArgs.AsciiSavePath))
+			{
+				Console.WriteLine("Cannot use viu and save frames together");
+				Environment.Exit(2);
+			}
+			
 			return processedArgs;
 		}
-
 
 		private static async Task<(IMediaInfo, string)> PreProcess(string path)
 		{
@@ -138,42 +192,6 @@ namespace ConsoleVideoPlayer.Player
 			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {(DateTime.Now - startTime).Seconds}s");
 
 			return working.ToArray();
-		}
-
-		private static void PlayAllFrames(IEnumerable<string> frames, double frameRate)
-		{
-			var frameTime   = 1000 / frameRate;
-
-			var timeDebt = 0d;
-			
-			Console.CursorVisible = false;
-
-			foreach (var frame in frames)
-			{
-				// setup for measuring later
-				var startTime = DateTime.Now;
-				
-				Console.CursorLeft = 0;
-				Console.CursorTop  = 0;
-				Console.Write(frame);
-				
-				// measure the time rendering took
-				var renderTime = (DateTime.Now - startTime).TotalMilliseconds;
-				// the amount of time we need to compensate for
-				var makeupTarget = renderTime + timeDebt;
-				// the maximum possible correction to apply this frame
-				var correction = Math.Min(makeupTarget, frameTime);
-				// if we can't fully make up time try to do it later
-				if (makeupTarget > frameTime)
-					timeDebt += frameTime - makeupTarget;
-				// work out the new time to wait
-				var correctedFrameTime = Convert.ToInt32(Math.Round(frameTime - correction));
-			
-				// wait for it!
-				Thread.Sleep(new TimeSpan(0, 0, 0, 0, correctedFrameTime));
-			}
-
-			Console.CursorVisible = true;
 		}
 	}
 }
