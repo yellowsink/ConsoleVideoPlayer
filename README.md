@@ -17,6 +17,12 @@ For example kitty on my laptop fails to render
 at 60fps at the default resolution.
 I suggest around 30fps for best results.
 
+## Important notes
+This program likes to use multiple gigabytes of RAM. If you do not have much RAM be aware that your system will be swapping
+memory constantly. If you do not have a swap (should only apply to some linux users), then you will probably have
+issues running this.
+
+If anyone can help with making the ascii conversion run multi-core, that'd be cool - all my attempts were unsuccessful.
 
 ## How to use
 Run the ConsoleVideoPlayer.Player executable and pass it the path to an mp4 file with `-v`. You can optionally specify a custom temp directory to use with `-t`, and specify the width and height to play the video at with `-w` and `-h`.
