@@ -64,7 +64,7 @@ namespace ConsoleVideoPlayer.VideoProcessor
 			if (overwrite) Directory.Delete(destination, true);
 			Directory.CreateDirectory(destination);
 
-			string OutputFileNameBuilder(string i) => $"\"{Path.Combine(destination, $"image{i}.bmp")}\"";
+			string OutputFileNameBuilder(string i) => $"\"{Path.Combine(destination, $"image{i}.jpg")}\"";
 
 			var info        = await FFmpeg.GetMediaInfo(VideoPath).ConfigureAwait(false);
 			var videoStream = info.VideoStreams.First()?.SetCodec(VideoCodec.bmp);

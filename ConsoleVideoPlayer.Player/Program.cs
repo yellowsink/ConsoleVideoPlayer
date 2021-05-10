@@ -51,7 +51,7 @@ namespace ConsoleVideoPlayer.Player
 					return;
 				}
 				
-				frames = ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"), processedArgs.Width, processedArgs.Height);
+				frames = Converter.ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"), processedArgs.Width, processedArgs.Height);
 
 				if (saveAscii)
 				{
@@ -170,29 +170,6 @@ namespace ConsoleVideoPlayer.Player
 			Console.WriteLine($"Done in {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
 
 			return (processor.Metadata, audioPath);
-		}
-
-		private static string[] ConvertAllImagesToAscii(
-			string imageDirectory, int targetWidth, int targetHeight)
-		{
-			var startTime = DateTime.Now;
-			
-			Console.Write("Creating ASCII art           ");
-
-			var working = new List<string>();
-			var files = new DirectoryInfo(imageDirectory) // the directory
-				.EnumerateFiles() // get all files
-				.OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)])); // put them in order!!!
-			foreach (var file in files)
-			{
-				var converter = new Converter {ImagePath = file.FullName};
-				var ascii     = converter.ProcessImage(targetWidth, targetHeight);
-				working.Add(ascii);
-			}
-
-			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {(DateTime.Now - startTime).Seconds}s");
-
-			return working.ToArray();
 		}
 	}
 }

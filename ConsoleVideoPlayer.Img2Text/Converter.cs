@@ -1,4 +1,9 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
 using ImageMagick;
 
 namespace ConsoleVideoPlayer.Img2Text
@@ -37,6 +42,44 @@ namespace ConsoleVideoPlayer.Img2Text
             }
 
             return working.ToString();
+        }
+
+        public static string[] ConvertAllImagesToAscii(
+            string imageDirectory, int targetWidth, int targetHeight)
+        {
+            var startTime = DateTime.Now;
+			
+            Console.Write("Creating ASCII art           ");
+
+            var working = new List<string>();
+            var files = new DirectoryInfo(imageDirectory) // the directory
+                .EnumerateFiles() // get all files
+                .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
+                .ToArray(); // put them in order!!!
+
+            var padAmount = files.Length.ToString().Length;
+
+            for (var i = 0; i < files.Length; i++)
+            {
+                var converter = new Converter {ImagePath = files[i].FullName};
+                var ascii     = converter.ProcessImage(targetWidth, targetHeight);
+                working.Add(ascii);
+
+                // every 10th
+                if (i % 10 != 0) continue;
+                Console.Write(
+                    $"{i.ToString().PadLeft(padAmount, '0')} / " +
+                    $"{files.Length} " +
+                    $"[{(100 * i / files.Length).ToString().PadLeft(3, '0')}%]");
+                Console.CursorLeft -= 10 + padAmount * 2;
+            }
+
+            for (var i = 0; i < 10 + padAmount * 2; i++) Console.Write(' ');
+            Console.CursorLeft -= 10 + padAmount * 2;
+            
+            Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {(DateTime.Now - startTime).Seconds}s");
+
+            return working.ToArray();
         }
 
         private static ImageProcessor ResizeImage(int targetWidth, int targetHeight, ImageProcessor processor)
