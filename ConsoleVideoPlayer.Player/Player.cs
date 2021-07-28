@@ -47,7 +47,7 @@ namespace ConsoleVideoPlayer.Player
 			while (queue.Count > 0)
 			{
 				var value = queue.Dequeue();
-				
+
 				var now = DateTime.UtcNow.Ticks;
 
 				Console.CursorLeft = 0;

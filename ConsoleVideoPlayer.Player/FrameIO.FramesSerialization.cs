@@ -13,7 +13,7 @@ namespace ConsoleVideoPlayer.Player
 		{
 			public static byte[] Serialize(SavedFrames frames)
 			{
-				var serialized = new MemoryStream(); 
+				var serialized = new MemoryStream();
 				SerializeToStream(frames, serialized, out var byteCount);
 				var span = new byte[byteCount];
 				serialized.Read(span);
@@ -21,16 +21,18 @@ namespace ConsoleVideoPlayer.Player
 				return span;
 			}
 
-			public static void SerializeToStream(SavedFrames frames, Stream stream) => SerializeToStream(frames, stream, out _);
+			public static void SerializeToStream(SavedFrames frames, Stream stream)
+				=> SerializeToStream(frames, stream, out _);
+
 			public static void SerializeToStream(SavedFrames frames, Stream stream, out int byteCount)
 			{
 				SerializeMetadata(frames, ref stream);
-				
+
 				// audio
 				// length takes up 4 bytes
 				stream.Write(frames.Audio.Length);
 				stream.Write(frames.Audio);
-				
+
 				// frames
 				// frame count takes up 4 bytes
 				stream.Write(frames.Frames.Count);
@@ -44,9 +46,9 @@ namespace ConsoleVideoPlayer.Player
 
 			private static void SerializeMetadata(SavedFrames frames, ref Stream steam)
 			{
-				var firstFrame    = frames.Frames.Peek().Split("\n");
-				var width         = firstFrame[0].Length;
-				var height        = firstFrame.Length;
+				var firstFrame = frames.Frames.Peek().Split("\n");
+				var width      = firstFrame[0].Length;
+				var height     = firstFrame.Length;
 				// 4 bytes
 				steam.Write(width);
 				// 4 bytes
@@ -55,7 +57,7 @@ namespace ConsoleVideoPlayer.Player
 				steam.Write(frames.Framerate);
 			}
 
-			public static SavedFrames Deserialize(byte[] bytes)  => Deserialize(new MemoryStream(bytes));
+			public static SavedFrames Deserialize(byte[] bytes) => Deserialize(new MemoryStream(bytes));
 
 			public static SavedFrames Deserialize(Stream stream)
 			{
@@ -63,11 +65,11 @@ namespace ConsoleVideoPlayer.Player
 				var width     = stream.ReadInt32();
 				var height    = stream.ReadInt32();
 				var framerate = stream.ReadDouble();
-				
+
 				// read audio
 				var audioLength = stream.ReadInt32();
 				var audio       = stream.Read(audioLength);
-				
+
 				// read frames
 				var framesCount = stream.ReadInt32();
 				var frames      = new List<string>();
@@ -100,7 +102,7 @@ namespace ConsoleVideoPlayer.Player
 		public static string ReadString(this Stream stream, int charCount)
 		{
 			var sb = new StringBuilder();
-			
+
 			var bytes = stream.Read(charCount * 2);
 			foreach (var c in bytes.Separate(2)) sb.Append(BitConverter.ToChar(c.ToArray()));
 
@@ -111,9 +113,9 @@ namespace ConsoleVideoPlayer.Player
 		{
 			foreach (var c in str) stream.Write(c);
 		}
-		
+
 		public static void Write(this Stream stream, dynamic item) => stream.Write(BitConverter.GetBytes(item));
-		
+
 		public static IEnumerable<IEnumerable<byte>> Separate(this IEnumerable<byte> bytes, int interval)
 		{
 			var queue   = new Queue<byte>(bytes);

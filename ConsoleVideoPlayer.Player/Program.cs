@@ -35,8 +35,8 @@ namespace ConsoleVideoPlayer.Player
 									@"ConsoleVideoPlayer-Temp");
 
 			Queue<string> frames;
-			string  audioPath;
-			double  frameRate;
+			string        audioPath;
+			double        frameRate;
 
 			if (!processedArgs.UseSavedFrames)
 			{
@@ -81,7 +81,8 @@ namespace ConsoleVideoPlayer.Player
 			return (frames, frameRate, audioPath);
 		}
 
-		private static async Task AsciiSave(string audioPath, Queue<string> frames, double frameRate, Args processedArgs)
+		private static async Task AsciiSave(string audioPath, Queue<string> frames, double frameRate,
+											Args   processedArgs)
 		{
 			var audioBytes = await File.ReadAllBytesAsync(audioPath);
 			new SavedFrames

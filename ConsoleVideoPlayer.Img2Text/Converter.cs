@@ -58,7 +58,7 @@ namespace ConsoleVideoPlayer.Img2Text
 					   .EnumerateFiles()                  // get all files
 					   .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
 					   .ToArray(); // put them in order!!!
-			
+
 			// prepare what work is to be done by what thread
 			var threadFileLists = new List<(int, FileSystemInfo)>[ThreadCount];
 			for (var i = 0; i < files.Length; i++)
