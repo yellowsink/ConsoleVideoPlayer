@@ -7,8 +7,6 @@ namespace ConsoleVideoPlayer.Player
 {
 	public static class Player
 	{
-		private static readonly Stopwatch Stopwatch = new();
-		
 		/// <summary>
 		///     Renders all frames
 		/// </summary>
@@ -40,22 +38,22 @@ namespace ConsoleVideoPlayer.Player
 		/// </summary>
 		private static void GenericPlay<T>(IEnumerable<T> iterator, Action<T> renderFunc, double frameRate)
 		{
-			var frameTime = 10_000_000 / frameRate;
+			var frameTime = (long) (10_000_000 / frameRate);
 
-			var timeDebt = 0d;
+			long timeDebt = 0;
 
 			Console.CursorVisible = false;
 
 			foreach (var iterable in iterator)
 			{
-				Stopwatch.Restart();
-
+				var now = DateTime.UtcNow.Ticks;
+				
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
 				renderFunc(iterable);
-
+				
 				// measure the time rendering took
-				var renderTime = Stopwatch.ElapsedTicks;
+				var renderTime = DateTime.UtcNow.Ticks - now;
 				// the amount of time we need to compensate for
 				var makeupTarget = renderTime + timeDebt;
 				// timeDebt has been accounted for, reset it!
@@ -65,14 +63,11 @@ namespace ConsoleVideoPlayer.Player
 				// if we can't fully make up time try to do it later
 				if (makeupTarget > frameTime)
 					timeDebt += makeupTarget - frameTime;
-				// compensate for rounding
+				
 				var toWait = frameTime - correction;
-				timeDebt += toWait - Math.Floor(toWait);
-				// work out the new time to wait
-				var correctedFrameTime = Convert.ToInt32(Math.Floor(toWait));
 
 				// wait for it!
-				Thread.Sleep(new TimeSpan(correctedFrameTime));
+				Thread.Sleep(new TimeSpan(toWait));
 			}
 		}
 	}

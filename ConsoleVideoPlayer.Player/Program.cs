@@ -19,6 +19,11 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task Main(string[] args)
 		{
+#if DEBUG
+			PrintTimerInfo();
+			Console.ReadKey(); // let me get a damn debugger on this
+#endif
+			
 			var processedArgs = ProcessArgs(args);
 			if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
 				return;
@@ -41,7 +46,6 @@ namespace ConsoleVideoPlayer.Player
 
 				if (processedArgs.UseViu)
 				{
-					PrintTimerInfo();
 					Console.Write("\nReady to play video! Press enter to begin playback.");
 					Console.ReadLine();
 					ViuPlay(audioPath, frameRate, processedArgs.Height);
@@ -57,8 +61,7 @@ namespace ConsoleVideoPlayer.Player
 					await AsciiSave(audioPath, frames, frameRate, processedArgs);
 					return;
 				}
-
-				PrintTimerInfo();
+				
 				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
 			}
@@ -178,16 +181,15 @@ namespace ConsoleVideoPlayer.Player
 			return (processor.Metadata, audioPath);
 		}
 
+#if DEBUG
 		private static void PrintTimerInfo()
 		{
-			var freqTicks       = Stopwatch.Frequency;
+			// ticks per second is equivalent to hertz
+			var freq            = Stopwatch.Frequency;
 			var isHighPrecision = Stopwatch.IsHighResolution;
 
-			var freqSeconds = ((decimal) freqTicks) / 10_000;
-
-			var freqHz = 1m / freqSeconds;
-			
-			Console.WriteLine($"Timer frequency: {Math.Round(freqHz)}Hz, High precision: {(isHighPrecision ? "Yes" : "No")}");
-		}
+			Console.WriteLine($"Timer frequency: {freq / 1_000_000_000}GHz ({freq / 1_000_000}MHz), High precision: {(isHighPrecision ? "Yes" : "No")}");
+		}		
+#endif
 	}
 }

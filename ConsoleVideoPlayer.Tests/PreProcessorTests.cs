@@ -7,17 +7,17 @@ using NUnit.Framework;
 
 namespace ConsoleVideoPlayer.Tests
 {
+	[TestFixture]
 	public class PreProcessorTests
 	{
-		private string _tempFolder;
 		private string _testVideoPath;
 
 		[SetUp] // Setup is called before each test
 		public void Setup()
 		{
 			_testVideoPath = Path.Combine(Environment.CurrentDirectory, "test_vid.mp4");
-			_tempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-									   @"Temp\Cain Atkinson\ConsoleVideoPlayer");
+			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+						 @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 		}
 
 		[Test]
