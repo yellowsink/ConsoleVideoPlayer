@@ -10,7 +10,7 @@ namespace ConsoleVideoPlayer.Player
 		/// <summary>
 		///     Renders all frames
 		/// </summary>
-		public static void PlayAsciiFrames(IEnumerable<string> frames, double frameRate)
+		public static void PlayAsciiFrames(Queue<string> frames, double frameRate)
 		{
 			Console.CursorVisible = false;
 
@@ -22,7 +22,7 @@ namespace ConsoleVideoPlayer.Player
 		/// <summary>
 		///     Renders all file paths as images using viu - very slow
 		/// </summary>
-		public static void PlayViuFrames(IEnumerable<string> filePaths, double frameRate, int targetHeight)
+		public static void PlayViuFrames(Queue<string> filePaths, double frameRate, int targetHeight)
 		{
 			// scale values to represent viu better
 			targetHeight /= 2;
@@ -34,9 +34,9 @@ namespace ConsoleVideoPlayer.Player
 		}
 
 		/// <summary>
-		///     Executes an arbitrary function for all items in the enumerable, and keeps in time with the framerate
+		///     Executes an arbitrary function for all items in the queue, and keeps in time with the framerate
 		/// </summary>
-		private static void GenericPlay<T>(IEnumerable<T> iterator, Action<T> renderFunc, double frameRate)
+		private static void GenericPlay<T>(Queue<T> queue, Action<T> renderFunc, double frameRate)
 		{
 			var frameTime = (long) (10_000_000 / frameRate);
 
@@ -44,13 +44,15 @@ namespace ConsoleVideoPlayer.Player
 
 			Console.CursorVisible = false;
 
-			foreach (var iterable in iterator)
+			while (queue.Count > 0)
 			{
+				var value = queue.Dequeue();
+				
 				var now = DateTime.UtcNow.Ticks;
 
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
-				renderFunc(iterable);
+				renderFunc(value);
 
 				// measure the time rendering took
 				var renderTime = DateTime.UtcNow.Ticks - now;

@@ -34,9 +34,9 @@ namespace ConsoleVideoPlayer.Player
 					?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 									@"ConsoleVideoPlayer-Temp");
 
-			string[] frames;
-			string   audioPath;
-			double   frameRate;
+			Queue<string> frames;
+			string  audioPath;
+			double  frameRate;
 
 			if (!processedArgs.UseSavedFrames)
 			{
@@ -52,9 +52,9 @@ namespace ConsoleVideoPlayer.Player
 					return;
 				}
 
-				frames = Converter.ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"),
-														   processedArgs.Width,
-														   processedArgs.Height);
+				frames = new Queue<string>(Converter.ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"),
+																			 processedArgs.Width,
+																			 processedArgs.Height));
 
 				if (saveAscii)
 				{
@@ -70,7 +70,7 @@ namespace ConsoleVideoPlayer.Player
 			AsciiPlay(audioPath, frames, frameRate);
 		}
 
-		private static async Task<(string[], double, string)> ReadSaved(Args processedArgs)
+		private static async Task<(Queue<string>, double, string)> ReadSaved(Args processedArgs)
 		{
 			var savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
 			var frames      = savedFrames.Frames;
@@ -81,7 +81,7 @@ namespace ConsoleVideoPlayer.Player
 			return (frames, frameRate, audioPath);
 		}
 
-		private static async Task AsciiSave(string audioPath, string[] frames, double frameRate, Args processedArgs)
+		private static async Task AsciiSave(string audioPath, Queue<string> frames, double frameRate, Args processedArgs)
 		{
 			var audioBytes = await File.ReadAllBytesAsync(audioPath);
 			new SavedFrames
@@ -95,7 +95,7 @@ namespace ConsoleVideoPlayer.Player
 			Directory.Delete(_tempDir, true);
 		}
 
-		private static void AsciiPlay(string audioPath, IEnumerable<string> frames, double frameRate)
+		private static void AsciiPlay(string audioPath, Queue<string> frames, double frameRate)
 		{
 			Console.Clear();
 
@@ -118,10 +118,10 @@ namespace ConsoleVideoPlayer.Player
 			new NetCoreAudio.Player().Play(audioPath);
 #pragma warning restore 4014
 
-			var files = new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
-			   .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
-			   .Select(f => f.FullName)
-			   .ToArray();
+			var files = new Queue<string>(new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
+											 .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
+											 .Select(f => f.FullName)
+											 .ToArray());
 
 			Player.PlayViuFrames(files, frameRate, targetHeight);
 
