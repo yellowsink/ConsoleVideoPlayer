@@ -69,11 +69,10 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task<(string[], double, string)> ReadSaved(Args processedArgs)
 		{
-			string[] frames;
-			var      savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
-			frames = savedFrames.Frames;
-			var frameRate = savedFrames.Framerate;
-			var audioPath = Path.Join(_tempDir, "audio.wav");
+			var savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
+			var frames      = savedFrames.Frames;
+			var frameRate   = savedFrames.Framerate;
+			var audioPath   = Path.Join(_tempDir, "audio.wav");
 			Directory.CreateDirectory(_tempDir);
 			await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
 			return (frames, frameRate, audioPath);
@@ -142,6 +141,10 @@ namespace ConsoleVideoPlayer.Player
 				Console.WriteLine("Cannot use viu and save frames together");
 				Environment.Exit(2);
 			}
+			
+			// width and height must be multiples of 2 or stuff breaks
+			processedArgs.Width += processedArgs.Width % 2;
+			processedArgs.Height += processedArgs.Height % 2;
 
 			return processedArgs;
 		}
