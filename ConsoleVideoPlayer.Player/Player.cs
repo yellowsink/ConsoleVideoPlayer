@@ -7,6 +7,8 @@ namespace ConsoleVideoPlayer.Player
 {
 	public static class Player
 	{
+		private static readonly Stopwatch Stopwatch = new();
+		
 		/// <summary>
 		///     Renders all frames
 		/// </summary>
@@ -46,15 +48,14 @@ namespace ConsoleVideoPlayer.Player
 
 			foreach (var iterable in iterator)
 			{
-				// setup for measuring later
-				var startTime = DateTime.Now;
+				Stopwatch.Restart();
 
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
 				renderFunc(iterable);
 
 				// measure the time rendering took
-				var renderTime = (DateTime.Now - startTime).TotalMilliseconds;
+				var renderTime = Stopwatch.ElapsedTicks;
 				// the amount of time we need to compensate for
 				var makeupTarget = renderTime + timeDebt;
 				// timeDebt has been accounted for, reset it!
@@ -71,7 +72,7 @@ namespace ConsoleVideoPlayer.Player
 				var correctedFrameTime = Convert.ToInt32(Math.Floor(toWait));
 
 				// wait for it!
-				Thread.Sleep(new TimeSpan(0, 0, 0, 0, correctedFrameTime));
+				Thread.Sleep(new TimeSpan(correctedFrameTime));
 			}
 		}
 	}

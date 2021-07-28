@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ namespace ConsoleVideoPlayer.Player
 {
 	internal static class Program
 	{
+		private static readonly Stopwatch Stopwatch = new();
+		
 		private static string _tempDir;
 
 		private static async Task Main(string[] args)
@@ -38,6 +41,7 @@ namespace ConsoleVideoPlayer.Player
 
 				if (processedArgs.UseViu)
 				{
+					PrintTimerInfo();
 					Console.Write("\nReady to play video! Press enter to begin playback.");
 					Console.ReadLine();
 					ViuPlay(audioPath, frameRate, processedArgs.Height);
@@ -54,11 +58,12 @@ namespace ConsoleVideoPlayer.Player
 					return;
 				}
 
+				PrintTimerInfo();
 				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
 			}
 			else { (frames, frameRate, audioPath) = await ReadSaved(processedArgs); }
-
+			
 			AsciiPlay(audioPath, frames, frameRate);
 		}
 
@@ -143,24 +148,43 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task<(IMediaInfo, string)> PreProcess(string path)
 		{
-			var startTime = DateTime.Now;
-
+			Stopwatch.Start();
 			var processor = new PreProcessor { VideoPath = path, TempFolder = _tempDir };
 			Console.Write("Reading metadata             ");
 			await processor.PopulateMetadata();
-			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMilliseconds)}ms");
+			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds}ms");
+			
+			Stopwatch.Restart();
 			Console.Write("Preparing to pre-process     ");
 			PreProcessor.CleanupTempDir(_tempDir);
 			Directory.CreateDirectory(_tempDir);
-			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMilliseconds)}ms");
+			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds}ms");
+			
+			Stopwatch.Restart();
 			Console.Write("Extracting Audio             ");
 			var audioPath = await processor.ExtractAudio();
-			Console.WriteLine($"Done in {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
+			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
+			
+			Stopwatch.Restart();
 			Console.Write("Splitting into images        ");
 			await processor.SplitVideoIntoImages();
-			Console.WriteLine($"Done in {Math.Round((DateTime.Now - startTime).TotalSeconds, 3)}s");
+			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
 
+			Stopwatch.Stop();
+			
 			return (processor.Metadata, audioPath);
+		}
+
+		private static void PrintTimerInfo()
+		{
+			var freqTicks       = Stopwatch.Frequency;
+			var isHighPrecision = Stopwatch.IsHighResolution;
+
+			var freqSeconds = ((decimal) freqTicks) / 10_000;
+
+			var freqHz = 1m / freqSeconds;
+			
+			Console.WriteLine($"Timer frequency: {Math.Round(freqHz)}Hz, High precision: {(isHighPrecision ? "Yes" : "No")}");
 		}
 	}
 }
