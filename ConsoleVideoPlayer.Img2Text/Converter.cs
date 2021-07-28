@@ -12,9 +12,9 @@ namespace ConsoleVideoPlayer.Img2Text
 	public class Converter
 	{
 		private const int ThreadCount = 8;
-		
+
 		private static readonly Stopwatch Stopwatch = new();
-		
+
 		public string ImagePath { get; init; }
 
 		public string ProcessImage(int? targetWidth = null, int? targetHeight = null)
@@ -61,7 +61,7 @@ namespace ConsoleVideoPlayer.Img2Text
 
 			var padAmount = files.Length.ToString().Length;
 
-			
+
 			// prepare what work is to be done by what thread
 			var threadFileLists = new List<(int, FileSystemInfo)>[ThreadCount];
 			for (var i = 0; i < files.Length; i++)
@@ -78,12 +78,12 @@ namespace ConsoleVideoPlayer.Img2Text
 			Stopwatch.Start();
 			foreach (var threadList in threadFileLists)
 				tasks.Add(Task.Run(() => FrameConverterThread(targetWidth, targetHeight, threadList)));
-			
-			
+
+
 			// wait for the tasks to finish
 			Task.WaitAll(tasks.ToArray());
 			Stopwatch.Stop();
-			
+
 			// join all lists together
 			var allFrames = tasks.Select(t => t.GetAwaiter().GetResult()) // get result of all tasks
 								 .SelectMany(a => a) // join all the arrays into one
@@ -97,15 +97,13 @@ namespace ConsoleVideoPlayer.Img2Text
 			return allFrames;
 		}
 
-		private static (int, string)[] FrameConverterThread(int targetWidth, int targetHeight, IEnumerable<(int, FileSystemInfo)> frames)
+		private static (int, string)[] FrameConverterThread(int targetWidth, int targetHeight,
+															IEnumerable<(int, FileSystemInfo)> frames)
 		{
 			var working = new List<(int, string)>();
 
 			foreach (var (num, file) in frames)
-				working.Add((num,
-							 new Converter { ImagePath = file.FullName }
-								.ProcessImage(targetWidth, targetHeight)
-							 ));
+				working.Add((num, new Converter { ImagePath = file.FullName }.ProcessImage(targetWidth, targetHeight)));
 
 			return working.ToArray();
 		}

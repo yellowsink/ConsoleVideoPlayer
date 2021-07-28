@@ -47,11 +47,11 @@ namespace ConsoleVideoPlayer.Player
 			foreach (var iterable in iterator)
 			{
 				var now = DateTime.UtcNow.Ticks;
-				
+
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
 				renderFunc(iterable);
-				
+
 				// measure the time rendering took
 				var renderTime = DateTime.UtcNow.Ticks - now;
 				// the amount of time we need to compensate for
@@ -63,7 +63,7 @@ namespace ConsoleVideoPlayer.Player
 				// if we can't fully make up time try to do it later
 				if (makeupTarget > frameTime)
 					timeDebt += makeupTarget - frameTime;
-				
+
 				var toWait = frameTime - correction;
 
 				// wait for it!

@@ -10,8 +10,6 @@ namespace ConsoleVideoPlayer.Tests
 	[TestFixture]
 	public class PreProcessorTests
 	{
-		private string _testVideoPath;
-
 		[SetUp] // Setup is called before each test
 		public void Setup()
 		{
@@ -19,6 +17,8 @@ namespace ConsoleVideoPlayer.Tests
 			Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 						 @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 		}
+
+		private string _testVideoPath;
 
 		[Test]
 		public async Task ExtractAudioTest()

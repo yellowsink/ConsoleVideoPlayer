@@ -14,7 +14,7 @@ namespace ConsoleVideoPlayer.Player
 	internal static class Program
 	{
 		private static readonly Stopwatch Stopwatch = new();
-		
+
 		private static string _tempDir;
 
 		private static async Task Main(string[] args)
@@ -23,7 +23,7 @@ namespace ConsoleVideoPlayer.Player
 			PrintTimerInfo();
 			Console.ReadKey(); // let me get a damn debugger on this
 #endif
-			
+
 			var processedArgs = ProcessArgs(args);
 			if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
 				return;
@@ -61,12 +61,12 @@ namespace ConsoleVideoPlayer.Player
 					await AsciiSave(audioPath, frames, frameRate, processedArgs);
 					return;
 				}
-				
+
 				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
 			}
 			else { (frames, frameRate, audioPath) = await ReadSaved(processedArgs); }
-			
+
 			AsciiPlay(audioPath, frames, frameRate);
 		}
 
@@ -144,9 +144,9 @@ namespace ConsoleVideoPlayer.Player
 				Console.WriteLine("Cannot use viu and save frames together");
 				Environment.Exit(2);
 			}
-			
+
 			// width and height must be multiples of 2 or stuff breaks
-			processedArgs.Width += processedArgs.Width % 2;
+			processedArgs.Width  += processedArgs.Width  % 2;
 			processedArgs.Height += processedArgs.Height % 2;
 
 			return processedArgs;
@@ -159,25 +159,25 @@ namespace ConsoleVideoPlayer.Player
 			Console.Write("Reading metadata             ");
 			await processor.PopulateMetadata();
 			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds}ms");
-			
+
 			Stopwatch.Restart();
 			Console.Write("Preparing to pre-process     ");
 			PreProcessor.CleanupTempDir(_tempDir);
 			Directory.CreateDirectory(_tempDir);
 			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds}ms");
-			
+
 			Stopwatch.Restart();
 			Console.Write("Extracting Audio             ");
 			var audioPath = await processor.ExtractAudio();
 			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
-			
+
 			Stopwatch.Restart();
 			Console.Write("Splitting into images        ");
 			await processor.SplitVideoIntoImages();
 			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
 
 			Stopwatch.Stop();
-			
+
 			return (processor.Metadata, audioPath);
 		}
 
@@ -189,7 +189,7 @@ namespace ConsoleVideoPlayer.Player
 			var isHighPrecision = Stopwatch.IsHighResolution;
 
 			Console.WriteLine($"Timer frequency: {freq / 1_000_000_000}GHz ({freq / 1_000_000}MHz), High precision: {(isHighPrecision ? "Yes" : "No")}");
-		}		
+		}
 #endif
 	}
 }
