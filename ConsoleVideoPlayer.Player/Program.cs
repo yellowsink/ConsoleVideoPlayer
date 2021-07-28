@@ -14,12 +14,7 @@ namespace ConsoleVideoPlayer.Player
 	{
 		private static string _tempDir;
 
-		private static void Main(string[] args)
-			=> MainAsync(args)
-			  .GetAwaiter()
-			  .GetResult(); // Do it like this instead of .Wait() to stop exceptions from being wrapped into an AggregateException
-
-		private static async Task MainAsync(IEnumerable<string> args)
+		private static async Task Main(string[] args)
 		{
 			var processedArgs = ProcessArgs(args);
 			if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
