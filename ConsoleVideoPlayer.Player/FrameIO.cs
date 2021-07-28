@@ -1,27 +1,24 @@
 using System.Collections.Generic;
 using System.IO;
-using MessagePack;
-using MessagePack.Resolvers;
 
 namespace ConsoleVideoPlayer.Player
 {
 	// ReSharper disable once InconsistentNaming
-	public static class FrameIO
+	public static partial class FrameIO
 	{
 		public static void Save(this SavedFrames frames, string savePath)
 		{
-			var msgpack = MessagePackSerializer.Serialize(frames, ContractlessStandardResolver.Options);
-			File.WriteAllBytes(savePath, msgpack);
+			var file = File.Create(savePath);
+			FramesSerialization.SerializeToStream(frames, file);
 		}
 
 		public static SavedFrames ReadFrames(string savePath)
 		{
-			var msgpack = File.ReadAllBytes(savePath);
-			return MessagePackSerializer.Deserialize<SavedFrames>(msgpack);
+			var file         = File.OpenRead(savePath);
+			return FramesSerialization.Deserialize(file);
 		}
 	}
-
-	[MessagePackObject]
+	
 	public class SavedFrames
 	{
 		public string[] FrameArray
