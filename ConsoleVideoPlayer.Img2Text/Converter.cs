@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,8 @@ namespace ConsoleVideoPlayer.Img2Text
 {
 	public class Converter
 	{
+		private static readonly Stopwatch Stopwatch = new();
+		
 		public string ImagePath { get; init; }
 
 		public string ProcessImage(int? targetWidth = null, int? targetHeight = null)
@@ -46,8 +49,6 @@ namespace ConsoleVideoPlayer.Img2Text
 
 		public static string[] ConvertAllImagesToAscii(string imageDirectory, int targetWidth, int targetHeight)
 		{
-			var startTime = DateTime.Now;
-
 			Console.Write("Creating ASCII art           ");
 
 			var working = new List<string>();
@@ -58,6 +59,7 @@ namespace ConsoleVideoPlayer.Img2Text
 
 			var padAmount = files.Length.ToString().Length;
 
+			Stopwatch.Start();
 			for (var i = 0; i < files.Length; i++)
 			{
 				var converter = new Converter { ImagePath = files[i].FullName };
@@ -70,11 +72,13 @@ namespace ConsoleVideoPlayer.Img2Text
 																		   + $"[{(100 * i / files.Length).ToString().PadLeft(3, '0')}%]");
 				Console.CursorLeft -= 10 + padAmount * 2;
 			}
+			Stopwatch.Stop();
 
 			for (var i = 0; i < 10   + padAmount * 2; i++) Console.Write(' ');
 			Console.CursorLeft -= 10 + padAmount * 2;
 
-			Console.WriteLine($"Done in {Math.Floor((DateTime.Now - startTime).TotalMinutes)}m {(DateTime.Now - startTime).Seconds}s");
+			var time = Stopwatch.Elapsed;
+			Console.WriteLine($"Done in {time.Minutes}m {time.Seconds}s");
 
 			return working.ToArray();
 		}
