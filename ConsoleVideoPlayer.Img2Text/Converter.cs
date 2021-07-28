@@ -50,7 +50,7 @@ namespace ConsoleVideoPlayer.Img2Text
 			return working.ToString();
 		}
 
-		public static string[] ConvertAllImagesToAscii(string imageDirectory, int targetWidth, int targetHeight)
+		public static Queue<string> ConvertAllImagesToAscii(string imageDirectory, int targetWidth, int targetHeight)
 		{
 			// prepare files for processing
 			Console.Write("Creating ASCII art           ");
@@ -58,10 +58,7 @@ namespace ConsoleVideoPlayer.Img2Text
 					   .EnumerateFiles()                  // get all files
 					   .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
 					   .ToArray(); // put them in order!!!
-
-			var padAmount = files.Length.ToString().Length;
-
-
+			
 			// prepare what work is to be done by what thread
 			var threadFileLists = new List<(int, FileSystemInfo)>[ThreadCount];
 			for (var i = 0; i < files.Length; i++)
@@ -94,7 +91,7 @@ namespace ConsoleVideoPlayer.Img2Text
 			var time = Stopwatch.Elapsed;
 			Console.WriteLine($"Done in {time.Minutes}m {time.Seconds}s");
 
-			return allFrames;
+			return new Queue<string>(allFrames);
 		}
 
 		private static (int, string)[] FrameConverterThread(int targetWidth, int targetHeight,

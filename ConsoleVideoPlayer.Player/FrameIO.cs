@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using MessagePack;
 using MessagePack.Resolvers;
@@ -23,11 +24,13 @@ namespace ConsoleVideoPlayer.Player
 	[MessagePackObject]
 	public class SavedFrames
 	{
-		// ReSharper disable PropertyCanBeMadeInitOnly.Global
-		[Key(0)] public string[] Frames    { get; set; }
-		[Key(1)] public double   Framerate { get; set; }
-
-		[Key(2)] public byte[] Audio { get; set; }
-		// ReSharper restore PropertyCanBeMadeInitOnly.Global
+		public string[] FrameArray
+		{
+			set => Frames = new(value);
+			get => Frames.ToArray();
+		}
+		public Queue<string> Frames = new();
+		public double        Framerate;
+		public byte[]        Audio;
 	}
 }
