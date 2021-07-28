@@ -40,7 +40,7 @@ namespace ConsoleVideoPlayer.Player
 		/// </summary>
 		private static void GenericPlay<T>(IEnumerable<T> iterator, Action<T> renderFunc, double frameRate)
 		{
-			var frameTime = 1000 / frameRate;
+			var frameTime = 10_000_000 / frameRate;
 
 			var timeDebt = 0d;
 
