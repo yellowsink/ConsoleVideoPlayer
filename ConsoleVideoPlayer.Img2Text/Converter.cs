@@ -4,12 +4,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using ImageMagick;
 
 namespace ConsoleVideoPlayer.Img2Text
 {
 	public class Converter
 	{
+		private const int ThreadCount = 8;
+		
 		private static readonly Stopwatch Stopwatch = new();
 		
 		public string ImagePath { get; init; }
@@ -49,9 +53,8 @@ namespace ConsoleVideoPlayer.Img2Text
 
 		public static string[] ConvertAllImagesToAscii(string imageDirectory, int targetWidth, int targetHeight)
 		{
+			// prepare files for processing
 			Console.Write("Creating ASCII art           ");
-
-			var working = new List<string>();
 			var files = new DirectoryInfo(imageDirectory) // the directory
 					   .EnumerateFiles()                  // get all files
 					   .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
@@ -59,26 +62,51 @@ namespace ConsoleVideoPlayer.Img2Text
 
 			var padAmount = files.Length.ToString().Length;
 
-			Stopwatch.Start();
+			
+			// prepare what work is to be done by what thread
+			var threadFileLists = new List<(int, FileSystemInfo)>[ThreadCount];
 			for (var i = 0; i < files.Length; i++)
 			{
-				var converter = new Converter { ImagePath = files[i].FullName };
-				var ascii     = converter.ProcessImage(targetWidth, targetHeight);
-				working.Add(ascii);
+				// initialise lists the first time around
+				// ReSharper disable once ArrangeObjectCreationWhenTypeNotEvident
+				threadFileLists[i % ThreadCount] ??= new();
 
-				// every 10th
-				if (i % 10 != 0) continue;
-				Console.Write($"{i.ToString().PadLeft(padAmount, '0')} / " + $"{files.Length} "
-																		   + $"[{(100 * i / files.Length).ToString().PadLeft(3, '0')}%]");
-				Console.CursorLeft -= 10 + padAmount * 2;
+				threadFileLists[i % ThreadCount].Add((i, files[i]));
 			}
-			Stopwatch.Stop();
 
-			for (var i = 0; i < 10   + padAmount * 2; i++) Console.Write(' ');
-			Console.CursorLeft -= 10 + padAmount * 2;
+			// fire off the threads to begin work
+			var tasks = new List<Task<(int, string)[]>>();
+			Stopwatch.Start();
+			foreach (var threadList in threadFileLists)
+				tasks.Add(Task.Run(() => FrameConverterThread(targetWidth, targetHeight, threadList)));
+			
+			
+			// wait for the tasks to finish
+			Task.WaitAll(tasks.ToArray());
+			Stopwatch.Stop();
+			
+			// join all lists together
+			var allFrames = tasks.Select(t => t.GetAwaiter().GetResult()) // get result of all tasks
+								 .SelectMany(a => a) // join all the arrays into one
+								 .OrderBy(p => p.Item1) // sort them by the frame number
+								 .Select(p => p.Item2) // just get the frames
+								 .ToArray(); // finally, compute the results of this query to an array
 
 			var time = Stopwatch.Elapsed;
 			Console.WriteLine($"Done in {time.Minutes}m {time.Seconds}s");
+
+			return allFrames;
+		}
+
+		private static (int, string)[] FrameConverterThread(int targetWidth, int targetHeight, IEnumerable<(int, FileSystemInfo)> frames)
+		{
+			var working = new List<(int, string)>();
+
+			foreach (var (num, file) in frames)
+				working.Add((num,
+							 new Converter { ImagePath = file.FullName }
+								.ProcessImage(targetWidth, targetHeight)
+							 ));
 
 			return working.ToArray();
 		}
