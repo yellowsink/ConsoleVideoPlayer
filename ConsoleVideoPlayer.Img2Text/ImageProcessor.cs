@@ -38,14 +38,14 @@ namespace ConsoleVideoPlayer.Img2Text
 			}
 
 			return Color.FromArgb(ScaleColour(colour.A),
-			                      ScaleColour(colour.R),
-			                      ScaleColour(colour.G),
-			                      ScaleColour(colour.B));
+								  ScaleColour(colour.R),
+								  ScaleColour(colour.G),
+								  ScaleColour(colour.B));
 		}
 
 		public MagickImage ResizeImage(int targetWidth, int targetHeight)
 		{
-			Image.Resize(new MagickGeometry(targetWidth, targetHeight) {IgnoreAspectRatio = true});
+			Image.Resize(new MagickGeometry(targetWidth, targetHeight) { IgnoreAspectRatio = true });
 			return Image;
 		}
 	}

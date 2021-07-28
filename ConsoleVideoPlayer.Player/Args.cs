@@ -7,7 +7,6 @@ namespace ConsoleVideoPlayer.Player
 	[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
 	public class Args
 	{
-
 		[Option('v', "video", Required = true)]
 		public string VideoPath { get; set; }
 
@@ -19,13 +18,13 @@ namespace ConsoleVideoPlayer.Player
 
 		[Option('w', "width", Required = false)]
 		public int Width { get; set; } = 128;
-		
+
 		[Option('s', "asciiSavePath", Required = false)]
 		public string AsciiSavePath { get; set; }
 
 		[Option('a', "useSavedFrames", Required = false)]
 		public bool UseSavedFrames { get; set; }
-		
+
 		[Option('i', "viu", Required = false)]
 		public bool UseViu { get; set; }
 	}

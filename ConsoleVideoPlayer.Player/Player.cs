@@ -5,80 +5,74 @@ using System.Threading;
 
 namespace ConsoleVideoPlayer.Player
 {
-    public static class Player
-    {
-        /// <summary>
-        /// Renders all frames
-        /// </summary>
-        public static void PlayAsciiFrames(IEnumerable<string> frames, double frameRate)
-        {
-            Console.CursorVisible = false;
+	public static class Player
+	{
+		/// <summary>
+		///     Renders all frames
+		/// </summary>
+		public static void PlayAsciiFrames(IEnumerable<string> frames, double frameRate)
+		{
+			Console.CursorVisible = false;
 
-            GenericPlay(
-                frames,
-                Console.Write,
-                frameRate);
-            
-            Console.CursorVisible = true;
-        }
+			GenericPlay(frames, Console.Write, frameRate);
 
-        /// <summary>
-        /// Renders all file paths as images using viu - very slow
-        /// </summary>
-        public static void PlayViuFrames(IEnumerable<string> filePaths, double frameRate, int targetHeight)
-        {
-            // scale values to represent viu better
-            targetHeight /= 2;
+			Console.CursorVisible = true;
+		}
 
-            void RenderFunc(string path)
-                => Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
+		/// <summary>
+		///     Renders all file paths as images using viu - very slow
+		/// </summary>
+		public static void PlayViuFrames(IEnumerable<string> filePaths, double frameRate, int targetHeight)
+		{
+			// scale values to represent viu better
+			targetHeight /= 2;
 
-            GenericPlay(
-                filePaths,
-                RenderFunc,
-                frameRate);
-        }
+			void RenderFunc(string path)
+				=> Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
 
-        /// <summary>
-        /// Executes an arbitrary function for all items in the enumerable, and keeps in time with the framerate
-        /// </summary>
-        private static void GenericPlay<T>(IEnumerable<T> iterator, Action<T> renderFunc, double frameRate)
-        {
-            var frameTime = 1000 / frameRate;
+			GenericPlay(filePaths, RenderFunc, frameRate);
+		}
 
-            var timeDebt = 0d;
+		/// <summary>
+		///     Executes an arbitrary function for all items in the enumerable, and keeps in time with the framerate
+		/// </summary>
+		private static void GenericPlay<T>(IEnumerable<T> iterator, Action<T> renderFunc, double frameRate)
+		{
+			var frameTime = 1000 / frameRate;
 
-            Console.CursorVisible = false;
+			var timeDebt = 0d;
 
-            foreach (var iterable in iterator)
-            {
-                // setup for measuring later
-                var startTime = DateTime.Now;
+			Console.CursorVisible = false;
 
-                Console.CursorLeft = 0;
-                Console.CursorTop = 0;
-                renderFunc(iterable);
+			foreach (var iterable in iterator)
+			{
+				// setup for measuring later
+				var startTime = DateTime.Now;
 
-                // measure the time rendering took
-                var renderTime = (DateTime.Now - startTime).TotalMilliseconds;
-                // the amount of time we need to compensate for
-                var makeupTarget = renderTime + timeDebt;
-                // timeDebt has been accounted for, reset it!
-                timeDebt = 0;
-                // the maximum possible correction to apply this frame
-                var correction = Math.Min(makeupTarget, frameTime);
-                // if we can't fully make up time try to do it later
-                if (makeupTarget > frameTime)
-                    timeDebt += makeupTarget - frameTime;
-                // compensate for rounding
-                var toWait = frameTime - correction;
-                timeDebt += toWait - Math.Floor(toWait);
-                // work out the new time to wait
-                var correctedFrameTime = Convert.ToInt32(Math.Floor(toWait));
+				Console.CursorLeft = 0;
+				Console.CursorTop  = 0;
+				renderFunc(iterable);
 
-                // wait for it!
-                Thread.Sleep(new TimeSpan(0, 0, 0, 0, correctedFrameTime));
-            }
-        }
-    }
+				// measure the time rendering took
+				var renderTime = (DateTime.Now - startTime).TotalMilliseconds;
+				// the amount of time we need to compensate for
+				var makeupTarget = renderTime + timeDebt;
+				// timeDebt has been accounted for, reset it!
+				timeDebt = 0;
+				// the maximum possible correction to apply this frame
+				var correction = Math.Min(makeupTarget, frameTime);
+				// if we can't fully make up time try to do it later
+				if (makeupTarget > frameTime)
+					timeDebt += makeupTarget - frameTime;
+				// compensate for rounding
+				var toWait = frameTime - correction;
+				timeDebt += toWait - Math.Floor(toWait);
+				// work out the new time to wait
+				var correctedFrameTime = Convert.ToInt32(Math.Floor(toWait));
+
+				// wait for it!
+				Thread.Sleep(new TimeSpan(0, 0, 0, 0, correctedFrameTime));
+			}
+		}
+	}
 }

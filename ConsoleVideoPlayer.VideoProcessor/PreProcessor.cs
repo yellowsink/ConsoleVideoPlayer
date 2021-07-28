@@ -70,17 +70,14 @@ namespace ConsoleVideoPlayer.VideoProcessor
 			var videoStream = info.VideoStreams.First()?.SetCodec(VideoCodec.bmp);
 
 			await FFmpeg.Conversions.New()
-			            .AddStream(videoStream)
-			            .ExtractEveryNthFrame(1, OutputFileNameBuilder)
-			            .Start();
+						.AddStream(videoStream)
+						.ExtractEveryNthFrame(1, OutputFileNameBuilder)
+						.Start();
 		}
 
 		public static void CleanupTempDir(string tempDir)
 		{
-			try
-			{
-				Directory.Delete(tempDir, true);
-			}
+			try { Directory.Delete(tempDir, true); }
 			catch
 			{
 				// ignored

@@ -1,26 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net5</TargetFramework>
+    <PropertyGroup>
+        <TargetFramework>net5</TargetFramework>
 
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="NUnit" Version="3.13.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="NUnit" Version="3.13.0"/>
+        <PackageReference Include="NUnit3TestAdapter" Version="3.17.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\ConsoleVideoPlayer.Img2Text\ConsoleVideoPlayer.Img2Text.csproj" />
-    <ProjectReference Include="..\ConsoleVideoPlayer.VideoProcessor\ConsoleVideoPlayer.VideoProcessor.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\ConsoleVideoPlayer.Img2Text\ConsoleVideoPlayer.Img2Text.csproj"/>
+        <ProjectReference Include="..\ConsoleVideoPlayer.VideoProcessor\ConsoleVideoPlayer.VideoProcessor.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Update="test_vid.mp4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+    <ItemGroup>
+        <None Update="test_vid.mp4">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
 
 </Project>

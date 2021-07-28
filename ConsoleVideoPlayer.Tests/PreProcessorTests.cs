@@ -9,16 +9,15 @@ namespace ConsoleVideoPlayer.Tests
 {
 	public class PreProcessorTests
 	{
-		private string _testVideoPath;
-
 		private string _tempFolder;
+		private string _testVideoPath;
 
 		[SetUp] // Setup is called before each test
 		public void Setup()
 		{
 			_testVideoPath = Path.Combine(Environment.CurrentDirectory, "test_vid.mp4");
 			_tempFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-			                           @"Temp\Cain Atkinson\ConsoleVideoPlayer");
+									   @"Temp\Cain Atkinson\ConsoleVideoPlayer");
 		}
 
 		[Test]
@@ -34,10 +33,7 @@ namespace ConsoleVideoPlayer.Tests
 				var path = await preProcessor.ExtractAudio(true);
 				Assert.True(File.Exists(path));
 			}
-			catch (Exception ex)
-			{
-				Assert.Fail(ex.Message);
-			}
+			catch (Exception ex) { Assert.Fail(ex.Message); }
 		}
 
 		[Test]
@@ -53,10 +49,7 @@ namespace ConsoleVideoPlayer.Tests
 				var path = await preProcessor.SplitVideoIntoImages();
 				Assert.True(Directory.EnumerateFiles(path).Any());
 			}
-			catch (Exception ex)
-			{
-				Assert.Fail(ex.Message);
-			}
+			catch (Exception ex) { Assert.Fail(ex.Message); }
 		}
 	}
 }
