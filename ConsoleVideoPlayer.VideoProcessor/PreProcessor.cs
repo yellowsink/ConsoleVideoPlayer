@@ -67,11 +67,12 @@ namespace ConsoleVideoPlayer.VideoProcessor
 			string OutputFileNameBuilder(string i) => $"\"{Path.Combine(destination, $"image{i}.jpg")}\"";
 
 			var info        = await FFmpeg.GetMediaInfo(VideoPath).ConfigureAwait(false);
-			var videoStream = info.VideoStreams.First()?.SetCodec(VideoCodec.bmp);
+			var videoStream = info.VideoStreams.First()?.SetCodec(VideoCodec.mjpeg);
 
 			await FFmpeg.Conversions.New()
 						.AddStream(videoStream)
 						.ExtractEveryNthFrame(1, OutputFileNameBuilder)
+						.UseMultiThread(true)
 						.Start();
 		}
 
