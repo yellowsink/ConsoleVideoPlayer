@@ -85,7 +85,7 @@ namespace ConsoleVideoPlayer.Player
 											Args   processedArgs)
 		{
 			var audioBytes = await File.ReadAllBytesAsync(audioPath);
-			new SavedFrames
+			new ParsedCvidFile
 			{
 				Frames    = frames,
 				Framerate = frameRate,
