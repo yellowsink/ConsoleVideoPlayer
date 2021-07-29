@@ -44,6 +44,9 @@ namespace ConsoleVideoPlayer.Player
 
 			Console.CursorVisible = false;
 
+			// this takes longer with more items, so we scale it here
+			var freeInterval = queue.Count * 0.2;
+			
 			while (queue.Count > 0)
 			{
 				var value = queue.Dequeue();
@@ -53,6 +56,10 @@ namespace ConsoleVideoPlayer.Player
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
 				renderFunc(value);
+
+				// every 20 % of the queue size items, try to free up ram
+				//if (queue.Count % freeInterval == 0)
+					queue.TrimExcess();
 
 				// measure the time rendering took
 				var renderTime = DateTime.UtcNow.Ticks - now;
