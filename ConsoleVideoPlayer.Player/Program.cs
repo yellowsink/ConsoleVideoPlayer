@@ -84,7 +84,7 @@ namespace ConsoleVideoPlayer.Player
 		private static async Task AsciiSave(string audioPath, Queue<string> frames, double frameRate, Args processedArgs)
 		{
 			var audioBytes = await File.ReadAllBytesAsync(audioPath);
-			new SavedFrames
+			new ParsedCvidFile
 			{
 				Frames    = frames,
 				Framerate = frameRate,
