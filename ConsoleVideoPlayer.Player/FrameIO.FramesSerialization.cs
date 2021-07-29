@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Threading.Tasks;
 
 namespace ConsoleVideoPlayer.Player
 {
@@ -11,6 +10,8 @@ namespace ConsoleVideoPlayer.Player
 	{
 		public static class FramesSerialization
 		{
+			private const int THREADS = 8;
+			
 			public static byte[] Serialize(SavedFrames frames)
 			{
 				var serialized = new MemoryStream();
@@ -71,10 +72,28 @@ namespace ConsoleVideoPlayer.Player
 				var audio       = stream.Read(audioLength);
 
 				// read frames
-				var framesCount = stream.ReadInt32();
-				var frames      = new List<string>();
-				for (var i = 0; i < framesCount; i++)
-					frames.Add(stream.ReadString(width * height));
+				var framesCount  = stream.ReadInt32();
+				var framesBuffer = stream.Read(framesCount * 2     * width * height);
+				var framesRaw    = framesBuffer.Separate(2 * width * height);
+
+				var framesPerThread = new List<(int, byte[])>[THREADS];
+				for (var i = 0; i < framesRaw.Length; i++)
+				{
+					framesPerThread[i % THREADS] ??= new List<(int, byte[])>();
+					
+					framesPerThread[i % THREADS].Add((i, framesRaw[i]));
+				}
+
+				var tasks = new List<Task<(int, string)[]>>();
+				foreach (var threadFrames in framesPerThread)
+					tasks.Add(Task.Run(() => threadFrames.Select(frame => (frame.Item1, frame.Item2.BytesToString())).ToArray()));
+
+				Task.WaitAll(tasks.ToArray());
+
+				var frames = tasks.SelectMany(t => t.Result)
+								  .OrderBy(p => p.Item1)
+								  .Select(p => p.Item2)
+								  .ToArray();
 
 				return new SavedFrames
 				{
@@ -83,52 +102,6 @@ namespace ConsoleVideoPlayer.Player
 					Audio     = audio
 				};
 			}
-		}
-	}
-
-	public static class IoHelpers
-	{
-		public static byte[] Read(this Stream stream, int byteCount)
-		{
-			var buffer = new byte[byteCount];
-			stream.Read(buffer);
-			return buffer;
-		}
-
-		public static int ReadInt32(this Stream stream) => BitConverter.ToInt32(stream.Read(4));
-
-		public static double ReadDouble(this Stream stream) => BitConverter.ToDouble(stream.Read(8));
-
-		public static string ReadString(this Stream stream, int charCount)
-		{
-			var sb = new StringBuilder();
-
-			var bytes = stream.Read(charCount * 2);
-			foreach (var c in bytes.Separate(2)) sb.Append(BitConverter.ToChar(c.ToArray()));
-
-			return sb.ToString();
-		}
-
-		public static void Write(this Stream stream, string str)
-		{
-			foreach (var c in str) stream.Write(c);
-		}
-
-		public static void Write(this Stream stream, dynamic item) => stream.Write(BitConverter.GetBytes(item));
-
-		public static IEnumerable<IEnumerable<byte>> Separate(this IEnumerable<byte> bytes, int interval)
-		{
-			var queue   = new Queue<byte>(bytes);
-			var working = new List<IEnumerable<byte>>();
-			while (queue.Count > 0)
-			{
-				var section = new List<byte>();
-				for (var i = 0; i < interval && queue.Count > 0; i++)
-					section.Add(queue.Dequeue());
-				working.Add(section);
-			}
-
-			return working;
 		}
 	}
 }

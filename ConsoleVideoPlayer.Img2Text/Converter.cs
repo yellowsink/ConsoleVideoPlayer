@@ -82,8 +82,7 @@ namespace ConsoleVideoPlayer.Img2Text
 			Stopwatch.Stop();
 
 			// join all lists together
-			var allFrames = tasks.Select(t => t.GetAwaiter().GetResult()) // get result of all tasks
-								 .SelectMany(a => a) // join all the arrays into one
+			var allFrames = tasks.SelectMany(t => t.GetAwaiter().GetResult()) // get result of all tasks
 								 .OrderBy(p => p.Item1) // sort them by the frame number
 								 .Select(p => p.Item2) // just get the frames
 								 .ToArray(); // finally, compute the results of this query to an array
