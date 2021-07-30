@@ -62,23 +62,29 @@ namespace ConsoleVideoPlayer.Player
 					await AsciiSave(audioPath, frames, frameRate, processedArgs);
 					return;
 				}
-
-				Console.Write("\nReady to play video! Press enter to begin playback.");
-				Console.ReadLine();
 			}
 			else { (frames, frameRate, audioPath) = await ReadSaved(processedArgs); }
-
+			
+			Console.Write("\nReady to play video! Press enter to begin playback.");
+			Console.ReadLine();
 			AsciiPlay(audioPath, frames, frameRate);
 		}
 
 		private static async Task<(Queue<string>, double, string)> ReadSaved(Args processedArgs)
 		{
+			Console.Write("Loading CVID file... ");
+			Stopwatch.Restart();
+			
 			var savedFrames = CvidIO.Read(processedArgs.VideoPath);
 			var frames      = savedFrames.Frames;
 			var frameRate   = savedFrames.Framerate;
 			var audioPath   = Path.Join(_tempDir, "audio.wav");
 			Directory.CreateDirectory(_tempDir);
 			await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
+			
+			Stopwatch.Stop();
+			Console.WriteLine($"Done in {Stopwatch.Elapsed.TotalSeconds}s");
+			
 			return (frames, frameRate, audioPath);
 		}
 
@@ -93,14 +99,16 @@ namespace ConsoleVideoPlayer.Player
 			{
 				Frames    = frames,
 				Framerate = frameRate,
-				Audio     = audioBytes
+				Audio     = audioBytes,
+				Version   = CvidVersion.V2
 			}.Write(processedArgs.AsciiSavePath);
-			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
 			Console.CursorVisible = true;
 			Directory.Delete(_tempDir, true);
 			
 			Stopwatch.Stop();
 			Console.WriteLine($"Done in {Stopwatch.Elapsed.TotalSeconds}s");
+			
+			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
 		}
 
 		private static void AsciiPlay(string audioPath, Queue<string> frames, double frameRate)
@@ -177,12 +185,12 @@ namespace ConsoleVideoPlayer.Player
 			Stopwatch.Restart();
 			Console.Write("Extracting Audio             ");
 			var audioPath = await processor.ExtractAudio();
-			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
 			Stopwatch.Restart();
 			Console.Write("Splitting into images        ");
 			await processor.SplitVideoIntoImages();
-			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
 			Stopwatch.Stop();
 
