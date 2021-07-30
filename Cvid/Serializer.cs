@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Cvid
 {
@@ -23,8 +21,9 @@ namespace Cvid
 		public static void Serialize(ParsedCvid cvid, Stream stream, out int byteCount)
 		{
 			// header to identify cvid version
-			stream.Write("cv");
-			stream.Write((int) cvid.Version);
+			stream.WriteByte((byte) 'c');
+			stream.WriteByte((byte) 'v');
+			stream.WriteByte((byte) cvid.Version);
 			
 			// metadata
 			SerializeMetadata(cvid, ref stream);

@@ -83,7 +83,7 @@ namespace ConsoleVideoPlayer.Player
 			await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
 			
 			Stopwatch.Stop();
-			Console.WriteLine($"Done in {Stopwatch.Elapsed.TotalSeconds}s");
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 			
 			return (frames, frameRate, audioPath);
 		}
@@ -91,7 +91,7 @@ namespace ConsoleVideoPlayer.Player
 		private static async Task AsciiSave(string audioPath, Queue<string> frames, double frameRate,
 											Args   processedArgs)
 		{
-			Console.Write("Saving to CVID file... ");
+			Console.Write("Saving to CVID file...       ");
 			Stopwatch.Restart();
 
 			var audioBytes = await File.ReadAllBytesAsync(audioPath);
@@ -106,7 +106,7 @@ namespace ConsoleVideoPlayer.Player
 			Directory.Delete(_tempDir, true);
 			
 			Stopwatch.Stop();
-			Console.WriteLine($"Done in {Stopwatch.Elapsed.TotalSeconds}s");
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 			
 			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
 		}

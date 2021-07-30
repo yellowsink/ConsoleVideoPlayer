@@ -1,6 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using MessagePack;
 
 namespace Cvid
@@ -40,7 +40,7 @@ namespace Cvid
 			if (bytes.CanSeek) bytes.Position -= 3;
 
 			// i know this is dumb but oh well - cvid >=2 should always start cv then ver, cvid 1 is just msgpack so it doesnt
-			return first2Bytes == new[] { (byte) 'c', (byte) 'v' }
+			return first2Bytes.SequenceEqual(new[] { (byte) 'c', (byte) 'v' })
 					   ? (CvidVersion) thirdByte
 					   : CvidVersion.V1;
 		}
