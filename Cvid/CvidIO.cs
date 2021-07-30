@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using MessagePack;
 
@@ -13,7 +14,7 @@ namespace Cvid
 			switch (ver)
 			{
 				case CvidVersion.V1:
-					MessagePackSerializer.Serialize(file, cvid);
+					MessagePackSerializer.Serialize(file, (CvidV1Object) cvid);
 					break;
 				case CvidVersion.V2:
 					cvid.ToBytes(file);

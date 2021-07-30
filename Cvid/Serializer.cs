@@ -7,37 +7,42 @@ namespace Cvid
 {
 	public static class Serializer
 	{
-		public static byte[] Serialize(ParsedCvid frames)
+		public static byte[] Serialize(ParsedCvid cvid)
 		{
 			using var serialized = new MemoryStream();
-			Serialize(frames, serialized, out var byteCount);
+			Serialize(cvid, serialized, out var byteCount);
 			var span = new byte[byteCount];
 			serialized.Read(span);
 
 			return span;
 		}
 
-		public static void Serialize(ParsedCvid frames, Stream stream)
-			=> Serialize(frames, stream, out _);
+		public static void Serialize(ParsedCvid cvid, Stream stream)
+			=> Serialize(cvid, stream, out _);
 
-		public static void Serialize(ParsedCvid frames, Stream stream, out int byteCount)
+		public static void Serialize(ParsedCvid cvid, Stream stream, out int byteCount)
 		{
-			SerializeMetadata(frames, ref stream);
+			// header to identify cvid version
+			stream.Write("cv");
+			stream.Write((int) cvid.Version);
+			
+			// metadata
+			SerializeMetadata(cvid, ref stream);
 
 			// audio
 			// length takes up 4 bytes
-			stream.Write(frames.Audio.Length);
-			stream.Write(frames.Audio);
+			stream.Write(cvid.Audio.Length);
+			stream.Write(cvid.Audio);
 
 			// frames
 			// frame count takes up 4 bytes
-			stream.Write(frames.Frames.Count);
+			stream.Write(cvid.Frames.Count);
 
 			// the actual frames
-			while (frames.Frames.Count > 0)
-				stream.Write(frames.Frames.Dequeue());
+			while (cvid.Frames.Count > 0)
+				stream.Write(cvid.Frames.Dequeue());
 
-			byteCount = 4 + 4 + 8 + 4 + frames.Audio.Length + 4 + frames.Frames.Count;
+			byteCount = 4 + 4 + 8 + 4 + cvid.Audio.Length + 4 + cvid.Frames.Count;
 		}
 
 		private static void SerializeMetadata(ParsedCvid frames, ref Stream steam)

@@ -6,7 +6,7 @@ namespace Cvid
 {
 	public class ParsedCvid
 	{
-		public readonly CvidVersion Version;
+		public CvidVersion Version { get; init; }
 
 		public byte[]        Audio;
 		public double        Framerate;
@@ -21,21 +21,40 @@ namespace Cvid
 
 	[MessagePackObject]
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
+	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+	[SuppressMessage("ReSharper", "NotAccessedField.Global")]
 	// ReSharper disable once ClassNeverInstantiated.Global
-	public class CvidV1Object : ParsedCvid
+	public class CvidV1Object
 	{
-		[IgnoreMember]
-		public new readonly CvidVersion Version = CvidVersion.V1;
+		[IgnoreMember] public CvidVersion Version = CvidVersion.V1;
 
-		[Key(2)] public new byte[] Audio;
-		[Key(1)] public new double Framerate;
+		[Key(2)]       public byte[]        Audio;
+		[Key(1)]       public double        Framerate;
+		[IgnoreMember] public Queue<string> Frames = new();
 
 		[Key(0)]
-		public new string[] FrameArray
+		public string[] FrameArray
 		{
 			set => Frames = new Queue<string>(value);
 			get => Frames.ToArray();
 		}
+		
+		// casts and conversions
+		public static implicit operator CvidV1Object(ParsedCvid c)
+			=> new()
+			{
+				Frames    = c.Frames,
+				Audio     = c.Audio,
+				Framerate = c.Framerate
+			};
+		
+		public static implicit operator ParsedCvid(CvidV1Object c)
+			=> new()
+			{
+				Frames    = c.Frames,
+				Audio     = c.Audio,
+				Framerate = c.Framerate
+			};
 	}
 
 	public enum CvidVersion
