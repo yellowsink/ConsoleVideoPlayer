@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using CommandLine;
 using ConsoleVideoPlayer.Img2Text;
 using ConsoleVideoPlayer.VideoProcessor;
+using Cvid;
 using Xabe.FFmpeg;
 
 namespace ConsoleVideoPlayer.Player
@@ -72,7 +73,7 @@ namespace ConsoleVideoPlayer.Player
 
 		private static async Task<(Queue<string>, double, string)> ReadSaved(Args processedArgs)
 		{
-			var savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
+			var savedFrames = CvidIO.Read(processedArgs.VideoPath);
 			var frames      = savedFrames.Frames;
 			var frameRate   = savedFrames.Framerate;
 			var audioPath   = Path.Join(_tempDir, "audio.wav");
@@ -85,12 +86,12 @@ namespace ConsoleVideoPlayer.Player
 											Args   processedArgs)
 		{
 			var audioBytes = await File.ReadAllBytesAsync(audioPath);
-			new ParsedCvidFile
+			new ParsedCvid
 			{
 				Frames    = frames,
 				Framerate = frameRate,
 				Audio     = audioBytes
-			}.Save(processedArgs.AsciiSavePath);
+			}.Write(processedArgs.AsciiSavePath);
 			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
 			Console.CursorVisible = true;
 			Directory.Delete(_tempDir, true);

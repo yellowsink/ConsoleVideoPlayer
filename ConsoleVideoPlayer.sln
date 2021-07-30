@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleVideoPlayer.VideoPro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleVideoPlayer.Tests", "ConsoleVideoPlayer.Tests\ConsoleVideoPlayer.Tests.csproj", "{4F090232-67D7-4023-947E-F97861212670}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cvid", "Cvid\Cvid.csproj", "{6A2E3361-5DC9-4D2D-9B16-F19F0FC930C0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{4F090232-67D7-4023-947E-F97861212670}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4F090232-67D7-4023-947E-F97861212670}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4F090232-67D7-4023-947E-F97861212670}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A2E3361-5DC9-4D2D-9B16-F19F0FC930C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A2E3361-5DC9-4D2D-9B16-F19F0FC930C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A2E3361-5DC9-4D2D-9B16-F19F0FC930C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A2E3361-5DC9-4D2D-9B16-F19F0FC930C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
