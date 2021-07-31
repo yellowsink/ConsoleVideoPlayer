@@ -61,39 +61,52 @@ namespace ConsoleVideoPlayer.Player
 					await AsciiSave(audioPath, frames, frameRate, processedArgs);
 					return;
 				}
-
-				Console.Write("\nReady to play video! Press enter to begin playback.");
-				Console.ReadLine();
 			}
 			else { (frames, frameRate, audioPath) = await ReadSaved(processedArgs); }
-
+			
+			Console.Write("\nReady to play video! Press enter to begin playback.");
+			Console.ReadLine();
 			AsciiPlay(audioPath, frames, frameRate);
 		}
 
 		private static async Task<(Queue<string>, double, string)> ReadSaved(Args processedArgs)
 		{
-			var savedFrames = FrameIO.ReadFrames(processedArgs.VideoPath);
+			Console.Write("Loading CVID file... ");
+			Stopwatch.Restart();
+			
+			var savedFrames = Cvid.Read(processedArgs.VideoPath);
 			var frames      = savedFrames.Frames;
 			var frameRate   = savedFrames.Framerate;
 			var audioPath   = Path.Join(_tempDir, "audio.wav");
 			Directory.CreateDirectory(_tempDir);
 			await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
+			
+			Stopwatch.Stop();
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
+			
 			return (frames, frameRate, audioPath);
 		}
 
 		private static async Task AsciiSave(string audioPath, Queue<string> frames, double frameRate,
 											Args   processedArgs)
 		{
+			Console.Write("Saving to CVID file...       ");
+			Stopwatch.Restart();
+
 			var audioBytes = await File.ReadAllBytesAsync(audioPath);
-			new ParsedCvidFile
+			new ParsedCvid
 			{
 				Frames    = frames,
 				Framerate = frameRate,
 				Audio     = audioBytes
-			}.Save(processedArgs.AsciiSavePath);
-			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
+			}.Write(processedArgs.AsciiSavePath);
 			Console.CursorVisible = true;
 			Directory.Delete(_tempDir, true);
+			
+			Stopwatch.Stop();
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
+			
+			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
 		}
 
 		private static void AsciiPlay(string audioPath, Queue<string> frames, double frameRate)
@@ -170,12 +183,12 @@ namespace ConsoleVideoPlayer.Player
 			Stopwatch.Restart();
 			Console.Write("Extracting Audio             ");
 			var audioPath = await processor.ExtractAudio();
-			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
 			Stopwatch.Restart();
 			Console.Write("Splitting into images        ");
 			await processor.SplitVideoIntoImages();
-			Console.WriteLine($"Done in {Stopwatch.ElapsedMilliseconds / 1000}s");
+			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
 			Stopwatch.Stop();
 
