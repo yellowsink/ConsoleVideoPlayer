@@ -25,7 +25,9 @@ namespace ConsoleVideoPlayer.Img2Text
 			var processor    = new ImageProcessor { Image = new MagickImage(ImagePath) };
 			var resizedImage = ResizeImage(targetWidth.Value, targetHeight.Value, processor);
 
-			var working = new StringBuilder();
+			var working  = new StringBuilder();
+			var previous = (topR: "", topG: "", topB: "", btmR: "", btmG: "", btmB: "");
+
 			for (var y = 0; y < targetHeight; y += 2)
 			{
 				for (var x = 0; x < targetWidth; x++)
@@ -40,8 +42,26 @@ namespace ConsoleVideoPlayer.Img2Text
 					var btmG = btmCol.G.ToString();
 					var btmB = btmCol.B.ToString();
 
-					working.Append($"\u001b[38;2;{topR};{topG};{topB};48;2;{btmR};{btmG};{btmB}m"); // Add ANSI escape sequence for colour :)
+					var topChanged = topR != previous.topR || topG != previous.topG || topB != previous.topB;
+					var btmChanged = btmR != previous.btmR || btmG != previous.btmG || btmB != previous.btmB;
+
+					if (topChanged || btmChanged)
+					{
+						// start an ansi escape sequence
+						working.Append("\u001b[");
+						// if necessary set the FG colour
+						if (topChanged) working.Append($"38;2;{topR};{topG};{topB}");
+						// if both need setting separate with a semicolon
+						if (topChanged && btmChanged) working.Append(';');
+						// if necessary set the BG colour
+						if (btmChanged) working.Append($"48;2;{btmR};{btmG};{btmB}");
+						// end the ansi escape sequence
+						working.Append('m');
+					}
+
 					working.Append('▀');
+
+					previous = (topR, topG, topB, btmR, btmG, btmB);
 				}
 
 				working.Append('\n');
