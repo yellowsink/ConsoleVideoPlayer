@@ -17,10 +17,7 @@ namespace ConsoleVideoPlayer.Player
 		public static ParsedCvid Read(string savePath)
 		{
 			using var file = File.OpenRead(savePath);
-			try
-			{
-				return MessagePackSerializer.Deserialize<ParsedCvid>(new DecompressionStream(file));
-			}
+			try { return MessagePackSerializer.Deserialize<ParsedCvid>(new DecompressionStream(file)); }
 			catch (MessagePackSerializationException)
 			{
 				file.Seek(0, SeekOrigin.Begin);
@@ -28,7 +25,7 @@ namespace ConsoleVideoPlayer.Player
 			}
 		}
 	}
-	
+
 	[MessagePackObject]
 	public class ParsedCvid
 	{

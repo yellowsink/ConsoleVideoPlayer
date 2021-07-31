@@ -63,7 +63,7 @@ namespace ConsoleVideoPlayer.Player
 				}
 			}
 			else { (frames, frameRate, audioPath) = await ReadSaved(processedArgs); }
-			
+
 			Console.Write("\nReady to play video! Press enter to begin playback.");
 			Console.ReadLine();
 			AsciiPlay(audioPath, frames, frameRate);
@@ -73,17 +73,17 @@ namespace ConsoleVideoPlayer.Player
 		{
 			Console.Write("Loading CVID file... ");
 			Stopwatch.Restart();
-			
+
 			var savedFrames = Cvid.Read(processedArgs.VideoPath);
 			var frames      = savedFrames.Frames;
 			var frameRate   = savedFrames.Framerate;
 			var audioPath   = Path.Join(_tempDir, "audio.wav");
 			Directory.CreateDirectory(_tempDir);
 			await File.WriteAllBytesAsync(audioPath, savedFrames.Audio);
-			
+
 			Stopwatch.Stop();
 			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
-			
+
 			return (frames, frameRate, audioPath);
 		}
 
@@ -102,10 +102,10 @@ namespace ConsoleVideoPlayer.Player
 			}.Write(processedArgs.AsciiSavePath);
 			Console.CursorVisible = true;
 			Directory.Delete(_tempDir, true);
-			
+
 			Stopwatch.Stop();
 			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
-			
+
 			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
 		}
 
