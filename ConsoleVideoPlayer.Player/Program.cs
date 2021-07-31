@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using CommandLine;
 using ConsoleVideoPlayer.Img2Text;
 using ConsoleVideoPlayer.VideoProcessor;
-using Cvid;
 using Xabe.FFmpeg;
 
 namespace ConsoleVideoPlayer.Player
@@ -75,7 +74,7 @@ namespace ConsoleVideoPlayer.Player
 			Console.Write("Loading CVID file... ");
 			Stopwatch.Restart();
 			
-			var savedFrames = CvidIO.Read(processedArgs.VideoPath);
+			var savedFrames = Cvid.Read(processedArgs.VideoPath);
 			var frames      = savedFrames.Frames;
 			var frameRate   = savedFrames.Framerate;
 			var audioPath   = Path.Join(_tempDir, "audio.wav");
@@ -99,8 +98,7 @@ namespace ConsoleVideoPlayer.Player
 			{
 				Frames    = frames,
 				Framerate = frameRate,
-				Audio     = audioBytes,
-				Version   = CvidVersion.V2
+				Audio     = audioBytes
 			}.Write(processedArgs.AsciiSavePath);
 			Console.CursorVisible = true;
 			Directory.Delete(_tempDir, true);

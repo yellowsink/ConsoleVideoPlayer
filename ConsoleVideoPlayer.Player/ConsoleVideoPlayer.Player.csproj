@@ -7,13 +7,14 @@
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
+        <PackageReference Include="MessagePack" Version="2.3.75" />
         <PackageReference Include="NetCoreAudio" Version="1.6.3" />
+        <PackageReference Include="ZstdNet" Version="1.4.5" />
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\ConsoleVideoPlayer.Img2Text\ConsoleVideoPlayer.Img2Text.csproj" />
         <ProjectReference Include="..\ConsoleVideoPlayer.VideoProcessor\ConsoleVideoPlayer.VideoProcessor.csproj" />
-        <ProjectReference Include="..\Cvid\Cvid.csproj" />
     </ItemGroup>
 
 </Project>
