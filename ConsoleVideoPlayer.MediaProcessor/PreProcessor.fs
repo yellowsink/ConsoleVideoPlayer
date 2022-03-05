@@ -21,15 +21,15 @@ let extractAudio overwrite tempFolder videoPath =
         let! extraction =
             FFmpeg.Conversions.FromSnippet.ExtractAudio(videoPath, pathMkv)
             |> Async.AwaitTask
-
-        let! conversion =
-            FFmpeg.Conversions.FromSnippet.Convert(pathMkv, pathWav)
-            |> Async.AwaitTask
-
+            
         do!
             extraction.Start()
             |> Async.AwaitTask
             |> Async.Ignore
+
+        let! conversion =
+            FFmpeg.Conversions.FromSnippet.Convert(pathMkv, pathWav)
+            |> Async.AwaitTask
 
         do!
             conversion.Start()
@@ -77,7 +77,7 @@ let splitIntoFrames width height overwrite tempFolder (metadata: IMediaInfo) =
 
 let cleanupTempDir folder =
     try
-        Directory.Delete folder
+        Directory.Delete(folder, true)
     with
     | _ -> ()
 
@@ -98,12 +98,12 @@ let preProcess path width height tempDir =
         sw.Restart()
         printf "Extracting Audio             "
         let! audioPath = extractAudio false tempDir path
-        printfn $"Done in %f{Math.Round(sw.Elapsed.TotalSeconds, 2)}s"
+        printfn $"Done in %.2f{sw.Elapsed.TotalSeconds}s"
 
         sw.Restart()
         printf "Splitting into images        "
         do! splitIntoFrames width height false tempDir metadata
-        printfn $"Done in %f{Math.Round(sw.Elapsed.TotalSeconds, 2)}s"
+        printfn $"Done in %.2f{sw.Elapsed.TotalSeconds}s"
 
         return (metadata, audioPath)
     }
