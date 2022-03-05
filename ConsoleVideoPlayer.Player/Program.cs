@@ -65,6 +65,9 @@ internal static class Program
 			frames
 				= new LinkedList<string >(await Converter.convertAllImages(Path.Combine(_tempDir, "raw_frames")));
 
+			// free disk space
+			PreProcessor.cleanupTempDir(Path.Combine(_tempDir, "raw_frames"));
+			
 			if (saveAscii)
 			{
 				await AsciiSave(audioPath, frames, frameRate, processedArgs);

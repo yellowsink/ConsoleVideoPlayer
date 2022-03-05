@@ -52,7 +52,7 @@ let splitIntoFrames width height overwrite tempFolder (metadata: IMediaInfo) =
 
         let outputFilenameBuilder i =
             "\""
-            + Path.Combine(destination, $"image%s{i}.jpg")
+            + Path.Combine(destination, $"image%s{i}.png")
             + "\""
 
         let fnBuilderFunc =
@@ -60,7 +60,7 @@ let splitIntoFrames width height overwrite tempFolder (metadata: IMediaInfo) =
 
         let stream =
             (metadata.VideoStreams |> Seq.head)
-                .SetCodec VideoCodec.mjpeg
+                .SetCodec VideoCodec.png
 
         do!
             FFmpeg

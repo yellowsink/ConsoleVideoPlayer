@@ -17,7 +17,10 @@ public static class Player
 		GenericPlay(frames,
 					Console.Write,
 					frameRate,
-					debug ? timeDebt => Console.Write("\u001b[32;40mtime debt: " + timeDebt) : null);
+					debug
+						? timeDebt => Console.Write("\u001b[32;40mtime debt: "
+												  + timeDebt.ToString().PadLeft(long.MaxValue.ToString().Length, '0'))
+						: null);
 
 		Console.CursorVisible = true;
 	}
