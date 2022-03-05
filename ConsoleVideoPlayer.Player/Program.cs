@@ -20,7 +20,12 @@ namespace ConsoleVideoPlayer.Player
 		private static async Task Main(string[] args)
 		{
 #if DEBUG
-			PrintTimerInfo();
+			// ticks per second is equivalent to hertz
+			var freq            = Stopwatch.Frequency;
+			var isHighPrecision = Stopwatch.IsHighResolution;
+
+			Console.WriteLine($"Timer frequency: {freq / 1_000_000_000}GHz ({freq / 1_000_000}MHz), High precision: {(isHighPrecision ? "Yes" : "No")}");
+			
 			Console.ReadKey(); // let me get a damn debugger on this
 #endif
 
@@ -28,19 +33,20 @@ namespace ConsoleVideoPlayer.Player
 			if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
 				return;
 
-			var saveAscii = !string.IsNullOrWhiteSpace(processedArgs.AsciiSavePath);
+			var saveAscii = !string.IsNullOrWhiteSpace(processedArgs.CvidSavePath);
 
 			_tempDir = processedArgs.TempFolderPath
 					?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 									@"ConsoleVideoPlayer-Temp");
 
-			Queue<string> frames;
+			IStringStream frames;
 			string        audioPath;
 			double        frameRate;
 
 			if (!processedArgs.UseSavedFrames)
 			{
-				var (meta, tempAPath) = await PreProcess(processedArgs.VideoPath);
+				var (meta, tempAPath)
+					= await PreProcess(processedArgs.VideoPath, processedArgs.Width, processedArgs.Height);
 				audioPath             = tempAPath;
 				frameRate             = meta.VideoStreams.First().Framerate;
 
@@ -48,13 +54,13 @@ namespace ConsoleVideoPlayer.Player
 				{
 					Console.Write("\nReady to play video! Press enter to begin playback.");
 					Console.ReadLine();
-					ViuPlay(audioPath, frameRate, processedArgs.Height);
+					await ViuPlay(audioPath, frameRate, processedArgs.Height);
 					return;
 				}
 
-				frames = new Queue<string>(Converter.ConvertAllImagesToAscii(Path.Combine(_tempDir, "raw_frames"),
-																			 processedArgs.Width,
-																			 processedArgs.Height));
+				frames = ConverterStream.ConvertAllFromFolder(Path.Combine(_tempDir, "raw_frames"),
+														   processedArgs.Width,
+														   processedArgs.Height);
 
 				if (saveAscii)
 				{
@@ -66,10 +72,10 @@ namespace ConsoleVideoPlayer.Player
 
 			Console.Write("\nReady to play video! Press enter to begin playback.");
 			Console.ReadLine();
-			AsciiPlay(audioPath, frames, frameRate);
+			await AsciiPlay(audioPath, frames, frameRate);
 		}
 
-		private static async Task<(Queue<string>, double, string)> ReadSaved(Args processedArgs)
+		private static async Task<(IStringStream, double, string)> ReadSaved(Args processedArgs)
 		{
 			Console.Write("Loading CVID file... ");
 			Stopwatch.Restart();
@@ -87,7 +93,7 @@ namespace ConsoleVideoPlayer.Player
 			return (frames, frameRate, audioPath);
 		}
 
-		private static async Task AsciiSave(string audioPath, Queue<string> frames, double frameRate,
+		private static async Task AsciiSave(string audioPath, IStringStream frames, double frameRate,
 											Args   processedArgs)
 		{
 			Console.Write("Saving to CVID file...       ");
@@ -99,17 +105,17 @@ namespace ConsoleVideoPlayer.Player
 				Frames    = frames,
 				Framerate = frameRate,
 				Audio     = audioBytes
-			}.Write(processedArgs.AsciiSavePath);
+			}.Write(processedArgs.CvidSavePath);
 			Console.CursorVisible = true;
 			Directory.Delete(_tempDir, true);
 
 			Stopwatch.Stop();
 			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
-			Console.WriteLine($"\nSaved the converted video to {processedArgs.AsciiSavePath}.");
+			Console.WriteLine($"\nSaved the converted video to {processedArgs.CvidSavePath}.");
 		}
 
-		private static void AsciiPlay(string audioPath, Queue<string> frames, double frameRate)
+		private static async Task AsciiPlay(string audioPath, IStringStream frames, double frameRate)
 		{
 			Console.Clear();
 
@@ -118,12 +124,12 @@ namespace ConsoleVideoPlayer.Player
 			new NetCoreAudio.Player().Play(audioPath);
 #pragma warning restore 4014
 
-			Player.PlayAsciiFrames(frames, frameRate);
+			await Player.PlayAsciiFrames(frames, frameRate);
 
 			Directory.Delete(_tempDir, true);
 		}
 
-		private static void ViuPlay(string audioPath, double frameRate, int targetHeight)
+		private static async Task ViuPlay(string audioPath, double frameRate, int targetHeight)
 		{
 			Console.Clear();
 
@@ -132,12 +138,12 @@ namespace ConsoleVideoPlayer.Player
 			new NetCoreAudio.Player().Play(audioPath);
 #pragma warning restore 4014
 
-			var files = new Queue<string>(new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
+			var files = new StaticStringStream(new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
 											 .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
 											 .Select(f => f.FullName)
 											 .ToArray());
 
-			Player.PlayViuFrames(files, frameRate, targetHeight);
+			await Player.PlayViuFrames(files, frameRate, targetHeight);
 
 			Directory.Delete(_tempDir, true);
 		}
@@ -153,7 +159,7 @@ namespace ConsoleVideoPlayer.Player
 				Environment.Exit(1);
 			}
 
-			if (processedArgs.UseViu && !string.IsNullOrWhiteSpace(processedArgs.AsciiSavePath))
+			if (processedArgs.UseViu && !string.IsNullOrWhiteSpace(processedArgs.CvidSavePath))
 			{
 				Console.WriteLine("Cannot use viu and save frames together");
 				Environment.Exit(2);
@@ -166,7 +172,7 @@ namespace ConsoleVideoPlayer.Player
 			return processedArgs;
 		}
 
-		private static async Task<(IMediaInfo, string)> PreProcess(string path)
+		private static async Task<(IMediaInfo, string)> PreProcess(string path, int width, int height)
 		{
 			Stopwatch.Start();
 			var processor = new PreProcessor { VideoPath = path, TempFolder = _tempDir };
@@ -187,23 +193,12 @@ namespace ConsoleVideoPlayer.Player
 
 			Stopwatch.Restart();
 			Console.Write("Splitting into images        ");
-			await processor.SplitVideoIntoImages();
+			await processor.SplitVideoIntoImages(width, height);
 			Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
 			Stopwatch.Stop();
 
 			return (processor.Metadata, audioPath);
 		}
-
-#if DEBUG
-		private static void PrintTimerInfo()
-		{
-			// ticks per second is equivalent to hertz
-			var freq            = Stopwatch.Frequency;
-			var isHighPrecision = Stopwatch.IsHighResolution;
-
-			Console.WriteLine($"Timer frequency: {freq / 1_000_000_000}GHz ({freq / 1_000_000}MHz), High precision: {(isHighPrecision ? "Yes" : "No")}");
-		}
-#endif
 	}
 }

@@ -19,8 +19,8 @@ namespace ConsoleVideoPlayer.Player
 		[Option('w', "width", Required = false)]
 		public int Width { get; set; } = 128;
 
-		[Option('s', "asciiSavePath", Required = false)]
-		public string AsciiSavePath { get; set; }
+		[Option('s', "cvidSavePath", Required = false)]
+		public string CvidSavePath { get; set; }
 
 		[Option('a', "useSavedFrames", Required = false)]
 		public bool UseSavedFrames { get; set; }

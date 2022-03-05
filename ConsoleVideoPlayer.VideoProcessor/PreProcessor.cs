@@ -33,7 +33,7 @@ namespace ConsoleVideoPlayer.VideoProcessor
 		/// <summary>
 		///     Extracts the audio as WAV from a video into the specified folder
 		/// </summary>
-		public async Task ExtractAudio(string destination, bool overwrite = false)
+		private async Task ExtractAudio(string destination, bool overwrite = false)
 		{
 			var audioPathMkv = $"{destination}.mkv";
 			var audioPathWav = $"{destination}.wav";
@@ -49,17 +49,17 @@ namespace ConsoleVideoPlayer.VideoProcessor
 		///     Extracts all the images as PNG in a video into a temp folder
 		/// </summary>
 		/// <returns>The path to the folder containing the images</returns>
-		public async Task<string> SplitVideoIntoImages(bool overwrite = false)
+		public async Task<string> SplitVideoIntoImages(int width, int height, bool overwrite = false)
 		{
 			var destination = Path.Combine(TempFolder, "raw_frames");
-			await SplitVideoIntoImages(destination, overwrite);
+			await SplitVideoIntoImages(width, height, destination, overwrite);
 			return destination;
 		}
 
 		/// <summary>
 		///     Extracts all the images as PNG in a video into the specified folder
 		/// </summary>
-		public async Task SplitVideoIntoImages(string destination, bool overwrite = false)
+		public async Task SplitVideoIntoImages(int width, int height, string destination, bool overwrite = false)
 		{
 			if (overwrite) Directory.Delete(destination, true);
 			Directory.CreateDirectory(destination);
@@ -71,6 +71,7 @@ namespace ConsoleVideoPlayer.VideoProcessor
 
 			await FFmpeg.Conversions.New()
 						.AddStream(videoStream)
+						.AddParameter($"-s {width}x{height}")
 						.ExtractEveryNthFrame(1, OutputFileNameBuilder)
 						.UseMultiThread(true)
 						.Start();

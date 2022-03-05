@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Xabe.FFmpeg" Version="5.0.2"/>
+        <PackageReference Include="Xabe.FFmpeg" Version="5.1.0" />
     </ItemGroup>
 
 </Project>

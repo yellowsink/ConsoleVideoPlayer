@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using ConsoleVideoPlayer.Img2Text;
 using MessagePack;
 using ZstdNet;
 
@@ -31,13 +32,13 @@ namespace ConsoleVideoPlayer.Player
 	{
 		[Key(2)]       public byte[]        Audio;
 		[Key(1)]       public double        Framerate;
-		[IgnoreMember] public Queue<string> Frames = new();
+		[IgnoreMember] public IStringStream Frames = new StaticStringStream(System.Array.Empty<string>());
 
 		[Key(0)]
 		public string[] FrameArray
 		{
-			set => Frames = new Queue<string>(value);
-			get => Frames.ToArray();
+			set => Frames = new StaticStringStream(value);
+			get => Frames.ReadUntilEmpty().GetAwaiter().GetResult();
 		}
 	}
 }

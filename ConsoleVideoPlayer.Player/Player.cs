@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
+using ConsoleVideoPlayer.Img2Text;
 
 namespace ConsoleVideoPlayer.Player
 {
@@ -10,11 +12,11 @@ namespace ConsoleVideoPlayer.Player
 		/// <summary>
 		///     Renders all frames
 		/// </summary>
-		public static void PlayAsciiFrames(Queue<string> frames, double frameRate)
+		public static async Task PlayAsciiFrames(IStringStream frames, double frameRate)
 		{
 			Console.CursorVisible = false;
 
-			GenericPlay(frames, Console.Write, frameRate);
+			await GenericPlay(frames, Console.Write, frameRate);
 
 			Console.CursorVisible = true;
 		}
@@ -22,7 +24,7 @@ namespace ConsoleVideoPlayer.Player
 		/// <summary>
 		///     Renders all file paths as images using viu - very slow
 		/// </summary>
-		public static void PlayViuFrames(Queue<string> filePaths, double frameRate, int targetHeight)
+		public static Task PlayViuFrames(IStringStream filePaths, double frameRate, int targetHeight)
 		{
 			// scale values to represent viu better
 			targetHeight /= 2;
@@ -30,13 +32,13 @@ namespace ConsoleVideoPlayer.Player
 			void RenderFunc(string path)
 				=> Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
 
-			GenericPlay(filePaths, RenderFunc, frameRate);
+			return GenericPlay(filePaths, RenderFunc, frameRate);
 		}
 
 		/// <summary>
 		///     Executes an arbitrary function for all items in the queue, and keeps in time with the framerate
 		/// </summary>
-		private static void GenericPlay<T>(Queue<T> queue, Action<T> renderFunc, double frameRate)
+		private static async Task GenericPlay(IStringStream queue, Action<string> renderFunc, double frameRate)
 		{
 			var frameTime = (long) (10_000_000 / frameRate);
 
@@ -44,11 +46,11 @@ namespace ConsoleVideoPlayer.Player
 
 			Console.CursorVisible = false;
 
-			while (queue.Count > 0)
+			while (!queue.Empty)
 			{
-				var value = queue.Dequeue();
-
-				var now = DateTime.UtcNow.Ticks;
+				var now   = DateTime.UtcNow.Ticks;
+				
+				var value = await queue.Read();
 
 				Console.CursorLeft = 0;
 				Console.CursorTop  = 0;
