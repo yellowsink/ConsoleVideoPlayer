@@ -5,63 +5,57 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ImageMagick;
+using SkiaSharp;
 
 namespace ConsoleVideoPlayer.Img2Text
 {
-	public class Converter
+	public static class Converter
 	{
 		private const int ThreadCount = 8;
 
 		private static readonly Stopwatch Stopwatch = new();
 
-		public string ImagePath { get; init; }
-
-		public string ProcessImage(int? targetWidth = null, int? targetHeight = null)
+		private static void BuildAnsiEscape(SKColor       top, SKColor btm, (SKColor top, SKColor btm) prev,
+											StringBuilder target)
 		{
-			var img = new MagickImage(ImagePath);
-			targetWidth  ??= img.BaseWidth;
-			targetHeight ??= img.BaseHeight;
-			var processor    = new ImageProcessor { Image = new MagickImage(ImagePath) };
-			var resizedImage = ResizeImage(targetWidth.Value, targetHeight.Value, processor);
+			var topChanged = top != prev.btm;
+			var btmChanged = btm != prev.btm;
+
+			if (topChanged || btmChanged)
+			{
+				// start an ansi escape sequence
+				target.Append("\u001b[");
+				// if necessary set the FG colour
+				if (topChanged) target.Append($"38;2;{top.Red};{top.Green};{top.Blue}");
+				// if both need setting separate with a semicolon
+				if (topChanged && btmChanged) target.Append(';');
+				// if necessary set the BG colour
+				if (btmChanged) target.Append($"48;2;{btm.Red};{btm.Green};{btm.Blue}");
+				// end the ansi escape sequence
+				target.Append('m');
+			}
+
+			target.Append('▀');
+		}
+
+		public static string ProcessImage(string imagePath)
+		{
+			var lookup = new PixelLookup(imagePath);
+			var (imgWidth, imgHeight) = lookup.Dimensions;
 
 			var working  = new StringBuilder();
-			var previous = (topR: "", topG: "", topB: "", btmR: "", btmG: "", btmB: "");
+			var previous = (top: SKColor.Empty, btm: SKColor.Empty);
 
-			for (var y = 0; y < targetHeight; y += 2)
+			for (var y = 0; y < imgHeight; y += 2)
 			{
-				for (var x = 0; x < targetWidth; x++)
+				for (var x = 0; x < imgWidth; x++)
 				{
-					var topCol = resizedImage.ColourFromPixelCoordinate(x, y);
-					var btmCol = resizedImage.ColourFromPixelCoordinate(x, y + 1);
+					var top = lookup.ColourAtCoord(x, y);
+					var btm = lookup.ColourAtCoord(x, y + 1);
 
-					var topR = topCol.R.ToString();
-					var topG = topCol.G.ToString();
-					var topB = topCol.B.ToString();
-					var btmR = btmCol.R.ToString();
-					var btmG = btmCol.G.ToString();
-					var btmB = btmCol.B.ToString();
+					BuildAnsiEscape(top, btm, previous, working);
 
-					var topChanged = topR != previous.topR || topG != previous.topG || topB != previous.topB;
-					var btmChanged = btmR != previous.btmR || btmG != previous.btmG || btmB != previous.btmB;
-
-					if (topChanged || btmChanged)
-					{
-						// start an ansi escape sequence
-						working.Append("\u001b[");
-						// if necessary set the FG colour
-						if (topChanged) working.Append($"38;2;{topR};{topG};{topB}");
-						// if both need setting separate with a semicolon
-						if (topChanged && btmChanged) working.Append(';');
-						// if necessary set the BG colour
-						if (btmChanged) working.Append($"48;2;{btmR};{btmG};{btmB}");
-						// end the ansi escape sequence
-						working.Append('m');
-					}
-
-					working.Append('▀');
-
-					previous = (topR, topG, topB, btmR, btmG, btmB);
+					previous = (top, btm);
 				}
 
 				working.Append('\n');
@@ -70,7 +64,7 @@ namespace ConsoleVideoPlayer.Img2Text
 			return working.ToString();
 		}
 
-		public static Queue<string> ConvertAllImagesToAscii(string imageDirectory, int targetWidth, int targetHeight)
+		public static async Task<Queue<string>> ConvertAllImagesToAscii(string imageDirectory)
 		{
 			// prepare files for processing
 			Console.Write("Creating ASCII art           ");
@@ -85,20 +79,22 @@ namespace ConsoleVideoPlayer.Img2Text
 			{
 				// initialise lists the first time around
 				// ReSharper disable once ArrangeObjectCreationWhenTypeNotEvident
+				// ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
 				threadFileLists[i % ThreadCount] ??= new();
 
 				threadFileLists[i % ThreadCount].Add((i, files[i]));
 			}
 
 			// fire off the threads to begin work
-			var tasks = new List<Task<(int, string)[]>>();
 			Stopwatch.Start();
-			foreach (var threadList in threadFileLists)
-				tasks.Add(Task.Run(() => FrameConverterThread(targetWidth, targetHeight, threadList)));
-
+			var tasks = threadFileLists
+					   .Select(threadList => Task.Run(() => threadList
+														   .Select(f => (f.Item1, ProcessImage(f.Item2.FullName)))
+														   .ToArray()))
+					   .ToArray();
 
 			// wait for the tasks to finish
-			Task.WaitAll(tasks.ToArray());
+			await Task.WhenAll(tasks);
 			Stopwatch.Stop();
 
 			// join all lists together
@@ -112,19 +108,5 @@ namespace ConsoleVideoPlayer.Img2Text
 
 			return new Queue<string>(allFrames);
 		}
-
-		private static (int, string)[] FrameConverterThread(int targetWidth, int targetHeight,
-															IEnumerable<(int, FileSystemInfo)> frames)
-		{
-			var working = new List<(int, string)>();
-
-			foreach (var (num, file) in frames)
-				working.Add((num, new Converter { ImagePath = file.FullName }.ProcessImage(targetWidth, targetHeight)));
-
-			return working.ToArray();
-		}
-
-		private static ImageProcessor ResizeImage(int targetWidth, int targetHeight, ImageProcessor processor)
-			=> new() { Image = processor.ResizeImage(targetWidth, targetHeight) };
 	}
 }
