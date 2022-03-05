@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using SkiaSharp;
+using ImageMagick;
 
 namespace ConsoleVideoPlayer.Img2Text
 {
@@ -13,42 +13,55 @@ namespace ConsoleVideoPlayer.Img2Text
 	{
 		private const int ThreadCount = 8;
 
-		public static string ProcessImage(string imagePath, int? targetWidth = null, int? targetHeight = null)
+		private static readonly Stopwatch Stopwatch = new();
+
+		public string ImagePath { get; init; }
+
+		public string ProcessImage(int? targetWidth = null, int? targetHeight = null)
 		{
-			var lookup = new PixelLookup(imagePath);
+			var img = new MagickImage(ImagePath);
+			targetWidth  ??= img.BaseWidth;
+			targetHeight ??= img.BaseHeight;
+			var processor    = new ImageProcessor { Image = new MagickImage(ImagePath) };
+			var resizedImage = ResizeImage(targetWidth.Value, targetHeight.Value, processor);
 
 			var working  = new StringBuilder();
-			var previous = (top: SKColor.Empty, btm: SKColor.Empty);
+			var previous = (topR: "", topG: "", topB: "", btmR: "", btmG: "", btmB: "");
 
 			for (var y = 0; y < targetHeight; y += 2)
 			{
 				for (var x = 0; x < targetWidth; x++)
 				{
-					var topCol = lookup.ColourAtCoord(x, y);
-					var btmCol = lookup.ColourAtCoord(x, y + 1);
+					var topCol = resizedImage.ColourFromPixelCoordinate(x, y);
+					var btmCol = resizedImage.ColourFromPixelCoordinate(x, y + 1);
 
-					var tChanged = topCol.Red != previous.top.Red || topCol.Green != previous.top.Green
-																  || topCol.Blue  != previous.top.Blue;
-					var bChanged = btmCol.Red != previous.btm.Red || btmCol.Green != previous.btm.Green
-																  || btmCol.Blue  != previous.btm.Blue;
+					var topR = topCol.R.ToString();
+					var topG = topCol.G.ToString();
+					var topB = topCol.B.ToString();
+					var btmR = btmCol.R.ToString();
+					var btmG = btmCol.G.ToString();
+					var btmB = btmCol.B.ToString();
 
-					if (tChanged || bChanged)
+					var topChanged = topR != previous.topR || topG != previous.topG || topB != previous.topB;
+					var btmChanged = btmR != previous.btmR || btmG != previous.btmG || btmB != previous.btmB;
+
+					if (topChanged || btmChanged)
 					{
 						// start an ansi escape sequence
 						working.Append("\u001b[");
 						// if necessary set the FG colour
-						if (tChanged) working.Append($"38;2;{topCol.Red};{topCol.Green};{topCol.Blue}");
+						if (topChanged) working.Append($"38;2;{topR};{topG};{topB}");
 						// if both need setting separate with a semicolon
-						if (tChanged && bChanged) working.Append(';');
+						if (topChanged && btmChanged) working.Append(';');
 						// if necessary set the BG colour
-						if (bChanged) working.Append($"48;2;{btmCol.Red};{btmCol.Green};{btmCol.Blue}");
+						if (btmChanged) working.Append($"48;2;{btmR};{btmG};{btmB}");
 						// end the ansi escape sequence
 						working.Append('m');
 					}
 
 					working.Append('▀');
 
-					previous = (topCol, btmCol);
+					previous = (topR, topG, topB, btmR, btmG, btmB);
 				}
 
 				working.Append('\n');
@@ -72,31 +85,29 @@ namespace ConsoleVideoPlayer.Img2Text
 			{
 				// initialise lists the first time around
 				// ReSharper disable once ArrangeObjectCreationWhenTypeNotEvident
-				// ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
 				threadFileLists[i % ThreadCount] ??= new();
 
 				threadFileLists[i % ThreadCount].Add((i, files[i]));
 			}
 
 			// fire off the threads to begin work
-			var sw = Stopwatch.StartNew();
-			var tasks = threadFileLists
-					   .Select(threadList
-								   => Task.Run(() => FrameConverterThread(targetWidth, targetHeight, threadList)))
-					   .ToArray();
+			var tasks = new List<Task<(int, string)[]>>();
+			Stopwatch.Start();
+			foreach (var threadList in threadFileLists)
+				tasks.Add(Task.Run(() => FrameConverterThread(targetWidth, targetHeight, threadList)));
 
 
 			// wait for the tasks to finish
-			Task.WaitAll(tasks);
-			sw.Stop();
+			Task.WaitAll(tasks.ToArray());
+			Stopwatch.Stop();
 
 			// join all lists together
-			var taskResults = tasks.Select(t => t.GetAwaiter().GetResult()).ToArray();
-			var allFrames   = new string[taskResults.Aggregate(0, (curr, _) => curr + 1)];
-			for (var i = 0; i < allFrames.Length; i++)
-				allFrames[i] = taskResults[i % ThreadCount][i / ThreadCount].Item2;
+			var allFrames = tasks.SelectMany(t => t.GetAwaiter().GetResult()) // get result of all tasks
+								 .OrderBy(p => p.Item1) // sort them by the frame number
+								 .Select(p => p.Item2) // just get the frames
+								 .ToArray(); // finally, compute the results of this query to an array
 
-			var time = sw.Elapsed;
+			var time = Stopwatch.Elapsed;
 			Console.WriteLine($"Done in {time.Minutes}m {time.Seconds}s");
 
 			return new Queue<string>(allFrames);
@@ -108,9 +119,12 @@ namespace ConsoleVideoPlayer.Img2Text
 			var working = new List<(int, string)>();
 
 			foreach (var (num, file) in frames)
-				working.Add((num, ProcessImage(file.FullName, targetWidth, targetHeight)));
+				working.Add((num, new Converter { ImagePath = file.FullName }.ProcessImage(targetWidth, targetHeight)));
 
 			return working.ToArray();
 		}
+
+		private static ImageProcessor ResizeImage(int targetWidth, int targetHeight, ImageProcessor processor)
+			=> new() { Image = processor.ResizeImage(targetWidth, targetHeight) };
 	}
 }
