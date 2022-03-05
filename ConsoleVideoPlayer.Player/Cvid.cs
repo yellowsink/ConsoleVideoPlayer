@@ -29,7 +29,7 @@ namespace ConsoleVideoPlayer.Player
 	[MessagePackObject]
 	public class ParsedCvid
 	{
-		[Key(2)]       public byte[]        Audio;
+		[Key(2)]       public byte[]        Audio = System.Array.Empty<byte>();
 		[Key(1)]       public double        Framerate;
 		[IgnoreMember] public Queue<string> Frames = new();
 

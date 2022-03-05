@@ -15,7 +15,7 @@ namespace ConsoleVideoPlayer.Player
 	{
 		private static readonly Stopwatch Stopwatch = new();
 
-		private static string _tempDir;
+		private static string _tempDir = null!;
 
 		private static async Task Main(string[] args)
 		{
@@ -73,7 +73,7 @@ namespace ConsoleVideoPlayer.Player
 
 			Console.Write("\nReady to play video! Press enter to begin playback.");
 			Console.ReadLine();
-			AsciiPlay(audioPath, frames, frameRate);
+			AsciiPlay(audioPath, frames, frameRate, processedArgs.Debug);
 		}
 
 		private static async Task<(Queue<string>, double, string)> ReadSaved(Args processedArgs)
@@ -116,7 +116,7 @@ namespace ConsoleVideoPlayer.Player
 			Console.WriteLine($"\nSaved the converted video to {processedArgs.CvidSavePath}.");
 		}
 
-		private static void AsciiPlay(string audioPath, Queue<string> frames, double frameRate)
+		private static void AsciiPlay(string audioPath, Queue<string> frames, double frameRate, bool debug)
 		{
 			Console.Clear();
 
@@ -125,7 +125,7 @@ namespace ConsoleVideoPlayer.Player
 			new NetCoreAudio.Player().Play(audioPath);
 #pragma warning restore 4014
 
-			Player.PlayAsciiFrames(frames, frameRate);
+			Player.PlayAsciiFrames(frames, frameRate, debug);
 
 			Directory.Delete(_tempDir, true);
 		}

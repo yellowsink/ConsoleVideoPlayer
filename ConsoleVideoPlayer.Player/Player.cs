@@ -10,11 +10,14 @@ namespace ConsoleVideoPlayer.Player
 		/// <summary>
 		///     Renders all frames
 		/// </summary>
-		public static void PlayAsciiFrames(Queue<string> frames, double frameRate)
+		public static void PlayAsciiFrames(Queue<string> frames, double frameRate, bool debug)
 		{
 			Console.CursorVisible = false;
 
-			GenericPlay(frames, Console.Write, frameRate);
+			GenericPlay(frames,
+						Console.Write,
+						frameRate,
+						debug ? timeDebt => Console.Write("\u001b[32;40mtime debt: " + timeDebt) : null);
 
 			Console.CursorVisible = true;
 		}
@@ -36,7 +39,7 @@ namespace ConsoleVideoPlayer.Player
 		/// <summary>
 		///     Executes an arbitrary function for all items in the queue, and keeps in time with the framerate
 		/// </summary>
-		private static void GenericPlay<T>(Queue<T> queue, Action<T> renderFunc, double frameRate)
+		private static void GenericPlay<T>(Queue<T> queue, Action<T> renderFunc, double frameRate, Action<long>? debugFunc = null)
 		{
 			var frameTime = (long) (10_000_000 / frameRate);
 
@@ -46,13 +49,11 @@ namespace ConsoleVideoPlayer.Player
 
 			while (queue.Count > 0)
 			{
-				var value = queue.Dequeue();
-
 				var now = DateTime.UtcNow.Ticks;
 
-				Console.CursorLeft = 0;
-				Console.CursorTop  = 0;
-				renderFunc(value);
+				Console.Write("\u001b[H");
+				renderFunc(queue.Dequeue());
+				debugFunc?.Invoke(timeDebt);
 
 				// measure the time rendering took
 				var renderTime = DateTime.UtcNow.Ticks - now;
