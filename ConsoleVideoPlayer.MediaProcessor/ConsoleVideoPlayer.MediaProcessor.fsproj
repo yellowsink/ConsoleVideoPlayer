@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="PreProcessor.fs" />
+        <Compile Include="PixelLookup.fs" />
+        <Compile Include="Converter.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Xabe.FFmpeg" Version="5.1.0" />
+        <PackageReference Include="SkiaSharp" Version="2.80.3" />
+        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.3" />
+        <PackageReference Update="FSharp.Core" Version="6.0.3" />
+    </ItemGroup>
+
+</Project>

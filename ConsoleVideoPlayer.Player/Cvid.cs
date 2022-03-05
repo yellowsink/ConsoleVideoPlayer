@@ -1,43 +1,39 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using MessagePack;
 using ZstdNet;
 
-namespace ConsoleVideoPlayer.Player
-{
-	// ReSharper disable once InconsistentNaming
-	public static class Cvid
-	{
-		public static void Write(this ParsedCvid cvid, string savePath)
-		{
-			using var stream = new CompressionStream(File.Create(savePath));
-			MessagePackSerializer.Serialize(stream, cvid);
-		}
+namespace ConsoleVideoPlayer.Player;
 
-		public static ParsedCvid Read(string savePath)
-		{
-			using var file = File.OpenRead(savePath);
-			try { return MessagePackSerializer.Deserialize<ParsedCvid>(new DecompressionStream(file)); }
-			catch (MessagePackSerializationException)
-			{
-				file.Seek(0, SeekOrigin.Begin);
-				return MessagePackSerializer.Deserialize<ParsedCvid>(file);
-			}
-		}
+[MessagePackObject]
+public class Cvid
+{
+	[Key(2)]       public byte[]             Audio = System.Array.Empty<byte>();
+	[Key(1)]       public double             Framerate;
+	[IgnoreMember] public LinkedList<string> Frames = new();
+
+	[Key(0)]
+	public string[] FrameArray
+	{
+		set => Frames = new LinkedList<string>(value);
+		get => Frames.ToArray();
+	}
+	
+	public void Write(string savePath)
+	{
+		using var stream = new CompressionStream(File.Create(savePath));
+		MessagePackSerializer.Serialize(stream, this);
 	}
 
-	[MessagePackObject]
-	public class ParsedCvid
+	public static Cvid Read(string savePath)
 	{
-		[Key(2)]       public byte[]        Audio = System.Array.Empty<byte>();
-		[Key(1)]       public double        Framerate;
-		[IgnoreMember] public Queue<string> Frames = new();
-
-		[Key(0)]
-		public string[] FrameArray
+		using var file = File.OpenRead(savePath);
+		try { return MessagePackSerializer.Deserialize<Cvid>(new DecompressionStream(file)); }
+		catch (MessagePackSerializationException)
 		{
-			set => Frames = new Queue<string>(value);
-			get => Frames.ToArray();
+			file.Seek(0, SeekOrigin.Begin);
+			return MessagePackSerializer.Deserialize<Cvid>(file);
 		}
 	}
 }

@@ -14,8 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ConsoleVideoPlayer.Img2Text\ConsoleVideoPlayer.Img2Text.csproj" />
-        <ProjectReference Include="..\ConsoleVideoPlayer.VideoProcessor\ConsoleVideoPlayer.VideoProcessor.csproj" />
+        <ProjectReference Include="..\ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.fsproj" />
     </ItemGroup>
 
 </Project>

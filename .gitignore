@@ -2,3 +2,4 @@
 obj
 bin
 *.sln.DotSettings.user
+.idea
