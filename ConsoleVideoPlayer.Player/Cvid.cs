@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using MessagePack;
+using Microsoft.FSharp.Collections;
 using ZstdNet;
 
 namespace ConsoleVideoPlayer.Player;
@@ -11,13 +10,13 @@ public class Cvid
 {
 	[Key(2)]       public byte[]             Audio = System.Array.Empty<byte>();
 	[Key(1)]       public double             Framerate;
-	[IgnoreMember] public LinkedList<string> Frames = new();
+	[IgnoreMember] public FSharpList<string> Frames = ListModule.Empty<string>();
 
 	[Key(0)]
 	public string[] FrameArray
 	{
-		set => Frames = new LinkedList<string>(value);
-		get => Frames.ToArray();
+		set => Frames = ArrayModule.ToList(value);
+		get => ListModule.ToArray(Frames);
 	}
 	
 	public void Write(string savePath)

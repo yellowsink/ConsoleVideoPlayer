@@ -47,12 +47,12 @@ let processImage (path: string) =
     let mutable prevTop = SKColor.Empty
     let mutable prevBtm = SKColor.Empty
 
-    [0 .. ((imgHeight / 2) - 1)]
-    |> List.map ((*) 2)
-    |> List.iter
+    [|0 .. ((imgHeight / 2) - 1)|]
+    |> Array.map ((*) 2)
+    |> Array.iter
         (fun y ->
-            [0 .. (imgWidth - 1)]
-            |> List.iter
+            [|0 .. (imgWidth - 1)|]
+            |> Array.iter
                 (fun x ->
                     let top = colAtCoord x y
                     let btm = colAtCoord x (y + 1)
@@ -73,25 +73,24 @@ let convertAllImages imageDir =
     let files =
         DirectoryInfo(imageDir).EnumerateFiles()
         |> Seq.sortBy (fun f -> int f.Name.[6..(f.Name.Length - 5)])
-        |> Seq.toList
 
     let threadFileLists =
         files
-        |> List.mapi (fun i f -> (i, f.FullName))
-        |> List.splitInto THREAD_COUNT
+        |> Seq.mapi (fun i f -> (i, f.FullName))
+        |> Seq.splitInto THREAD_COUNT
 
     let sw = Stopwatch.StartNew()
 
     let computations =
         threadFileLists
-        |> List.map
+        |> Seq.map
             (fun fileList ->
                 async {
                     do! Async.SwitchToThreadPool()
 
                     return
                         fileList
-                        |> List.map (fun (i, path) -> (i, processImage path))
+                        |> Array.map (fun (i, path) -> (i, processImage path))
                 })
 
     task {
@@ -105,7 +104,7 @@ let convertAllImages imageDir =
 
         return
             threadResults
-            |> List.concat
-            |> List.sortBy fst
-            |> List.map snd
+            |> Seq.concat
+            |> Seq.sortBy fst
+            |> Seq.map snd
     }
