@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.fsproj" />
+        <ProjectReference Include="..\ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.csproj" />
     </ItemGroup>
 
 </Project>

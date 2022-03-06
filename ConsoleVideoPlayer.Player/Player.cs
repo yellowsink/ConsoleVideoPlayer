@@ -1,7 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.FSharp.Collections;
 
 namespace ConsoleVideoPlayer.Player;
 
@@ -10,7 +10,7 @@ public static class Player
 	/// <summary>
 	///     Renders all frames
 	/// </summary>
-	public static void PlayAsciiFrames(FSharpList<string> frames, double frameRate, bool debug)
+	public static void PlayAsciiFrames(LinkedList<string> frames, double frameRate, bool debug)
 	{
 		Console.CursorVisible = false;
 
@@ -28,7 +28,7 @@ public static class Player
 	/// <summary>
 	///     Renders all file paths as images using viu - very slow
 	/// </summary>
-	public static void PlayViuFrames(FSharpList<string> filePaths, double frameRate, int targetHeight)
+	public static void PlayViuFrames(LinkedList<string> filePaths, double frameRate, int targetHeight)
 	{
 		// scale values to represent viu better
 		targetHeight /= 2;
@@ -40,9 +40,9 @@ public static class Player
 	}
 
 	/// <summary>
-	///     Executes an arbitrary function for all items in the fsList, and keeps in time with the framerate
+	///     Executes an arbitrary function for all items in the list, and keeps in time with the framerate
 	/// </summary>
-	private static void GenericPlay<T>(FSharpList<T> fsList, Action<T> renderFunc, double frameRate, Action<long>? debugFunc = null)
+	private static void GenericPlay<T>(LinkedList<T> list, Action<T> renderFunc, double frameRate, Action<long>? debugFunc = null)
 	{
 		var frameTime = (long) (10_000_000 / frameRate);
 
@@ -50,13 +50,13 @@ public static class Player
 
 		Console.CursorVisible = false;
 
-		while(fsList?.IsEmpty == false)
+		while (list.First != null)
 		{
 			var now = DateTime.UtcNow.Ticks;
 
 			Console.Write("\u001b[H");
-			renderFunc(fsList.Head);
-			fsList = fsList.TailOrNull;
+			renderFunc(list.First.Value);
+			list.RemoveFirst();
 			debugFunc?.Invoke(timeDebt);
 
 			// measure the time rendering took

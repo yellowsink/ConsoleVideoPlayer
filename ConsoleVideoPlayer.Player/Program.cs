@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommandLine;
 using ConsoleVideoPlayer.MediaProcessor;
-using Microsoft.FSharp.Collections;
 
 namespace ConsoleVideoPlayer.Player;
 
@@ -38,7 +37,7 @@ internal static class Program
 				?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 								@"ConsoleVideoPlayer-Temp");
 
-		FSharpList<string> frames;
+		LinkedList<string> frames;
 		string       audioPath;
 		double       frameRate;
 
@@ -47,10 +46,10 @@ internal static class Program
 		else
 		{
 			var (meta, tempAPath)
-				= await PreProcessor.preProcess(processedArgs.VideoPath,
+				= await PreProcessor.PreProcess(processedArgs.VideoPath,
+												_tempDir,
 												processedArgs.Width,
-												processedArgs.Height,
-												_tempDir);
+												processedArgs.Height);
 
 			audioPath = tempAPath;
 			frameRate = meta.VideoStreams.First().Framerate;
@@ -63,10 +62,10 @@ internal static class Program
 				return;
 			}
 
-			frames = SeqModule.ToList(await Converter.convertAllImages(Path.Combine(_tempDir, "raw_frames")));
+			frames = await Converter.ConvertAllImages(Path.Combine(_tempDir, "RawFrames"));
 
 			// free disk space
-			PreProcessor.cleanupTempDir(Path.Combine(_tempDir, "raw_frames"));
+			PreProcessor.CleanupTempDir(Path.Combine(_tempDir, "RawFrames"));
 			
 			if (saveAscii)
 			{
@@ -80,7 +79,7 @@ internal static class Program
 		AsciiPlay(audioPath, frames, frameRate, processedArgs.Debug);
 	}
 
-	private static async Task<(FSharpList<string>, double, string)> ReadSaved(Args processedArgs)
+	private static async Task<(LinkedList<string>, double, string)> ReadSaved(Args processedArgs)
 	{
 		Console.Write("Loading CVID file... ");
 		Stopwatch.Restart();
@@ -98,7 +97,7 @@ internal static class Program
 		return (frames, frameRate, audioPath);
 	}
 
-	private static async Task AsciiSave(string audioPath, FSharpList<string> frames, double frameRate,
+	private static async Task AsciiSave(string audioPath, LinkedList<string> frames, double frameRate,
 										Args   processedArgs)
 	{
 		Console.Write("Saving to CVID file...       ");
@@ -120,7 +119,7 @@ internal static class Program
 		Console.WriteLine($"\nSaved the converted video to {processedArgs.CvidSavePath}.");
 	}
 
-	private static void AsciiPlay(string audioPath, FSharpList<string> frames, double frameRate, bool debug)
+	private static void AsciiPlay(string audioPath, LinkedList<string> frames, double frameRate, bool debug)
 	{
 		Console.Clear();
 
@@ -143,12 +142,9 @@ internal static class Program
 		new NetCoreAudio.Player().Play(audioPath);
 #pragma warning restore 4014
 
-		var files = SeqModule.ToList(new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
-											  .OrderBy(f => Convert.ToInt32(f.Name[new Range(6,
-																				f.Name.Length
-																			  - 4)]))
-											  .Select(f => f.FullName)
-											  .ToArray());
+		var files = new LinkedList<string>(new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
+											  .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
+											  .Select(f => f.FullName));
 
 		Player.PlayViuFrames(files, frameRate, targetHeight);
 

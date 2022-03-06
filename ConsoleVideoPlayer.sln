@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30804.86
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleVideoPlayer.Player", "ConsoleVideoPlayer.Player\ConsoleVideoPlayer.Player.csproj", "{53C71F7D-1E7E-4418-B994-C877D525025E}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConsoleVideoPlayer.MediaProcessor", "ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.fsproj", "{AD855A71-2AB5-4E63-8EF6-CC018B204A28}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleVideoPlayer.MediaProcessor", "ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.csproj", "{C1511B6C-530D-4FB6-916A-022DB6E00FE2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{53C71F7D-1E7E-4418-B994-C877D525025E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53C71F7D-1E7E-4418-B994-C877D525025E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53C71F7D-1E7E-4418-B994-C877D525025E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{AD855A71-2AB5-4E63-8EF6-CC018B204A28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AD855A71-2AB5-4E63-8EF6-CC018B204A28}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{AD855A71-2AB5-4E63-8EF6-CC018B204A28}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{AD855A71-2AB5-4E63-8EF6-CC018B204A28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1511B6C-530D-4FB6-916A-022DB6E00FE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1511B6C-530D-4FB6-916A-022DB6E00FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1511B6C-530D-4FB6-916A-022DB6E00FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1511B6C-530D-4FB6-916A-022DB6E00FE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
