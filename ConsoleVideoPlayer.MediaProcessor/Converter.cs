@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 using SkiaSharp;
 
@@ -6,8 +7,9 @@ namespace ConsoleVideoPlayer.MediaProcessor;
 
 public static class Converter
 {
-	public const int ThreadCount = 8;
+	private const int ThreadCount = 8;
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static void AnsiEscape(SKColor top, SKColor btm, SKColor prevTop, SKColor prevBtm, StringBuilder target)
 	{
 		var tChanged = top != prevTop;
@@ -29,7 +31,7 @@ public static class Converter
 		target.Append('▀');
 	}
 
-	public static string ProcessImage(string path)
+	private static string ProcessImage(string path)
 	{
 		var lookup  = new PixelLookup(path);
 		var prevTop = SKColor.Empty;

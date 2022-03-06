@@ -1,33 +1,47 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace ConsoleVideoPlayer.Player;
 
 public static class Player
 {
-	/// <summary>
-	///     Renders all frames
-	/// </summary>
+	private static readonly int PadLength = long.MaxValue.ToString().Length;
+
+	private const int DebugDebtQueueLength = 15;
+	
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static string FormatLong(long val) => val.ToString().PadLeft(PadLength, '0');
+	
 	public static void PlayAsciiFrames(LinkedList<string> frames, double frameRate, bool debug)
 	{
 		Console.CursorVisible = false;
 
-		GenericPlay(frames,
-					Console.Write,
-					frameRate,
-					debug
-						? timeDebt => Console.Write("\u001b[32;40mtime debt: "
-												  + timeDebt.ToString().PadLeft(long.MaxValue.ToString().Length, '0'))
-						: null);
+		var debugDebtQueue = new long[DebugDebtQueueLength];
+		var debugDebtMax   = 0L;
+		void DebugFunc(long timeDebt)
+		{
+			for (var i = 0; i < debugDebtQueue.Length - 1; i++) debugDebtQueue[i + 1] = debugDebtQueue[i];
+			debugDebtQueue[0] = timeDebt;
+
+			var sum = 0L;
+			
+			// ReSharper disable once ForCanBeConvertedToForeach
+			// ReSharper disable once LoopCanBeConvertedToQuery
+			for (var i = 0; i < debugDebtQueue.Length; i++) sum += debugDebtQueue[i];
+
+			Console.Write("\u001b[32;40mTIME DEBT | curr: " + FormatLong(timeDebt) + " | last " + DebugDebtQueueLength
+						+ " mean: "                         + FormatLong(sum / DebugDebtQueueLength) + " | max: "
+						+ FormatLong(debugDebtMax = Math.Max(debugDebtMax, timeDebt)));
+		}
+
+		GenericPlay(frames, Console.Write, frameRate, debug ? DebugFunc : null);
 
 		Console.CursorVisible = true;
 	}
 
-	/// <summary>
-	///     Renders all file paths as images using viu - very slow
-	/// </summary>
 	public static void PlayViuFrames(LinkedList<string> filePaths, double frameRate, int targetHeight)
 	{
 		// scale values to represent viu better
@@ -39,9 +53,7 @@ public static class Player
 		GenericPlay(filePaths, RenderFunc, frameRate);
 	}
 
-	/// <summary>
-	///     Executes an arbitrary function for all items in the list, and keeps in time with the framerate
-	/// </summary>
+	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
 	private static void GenericPlay<T>(LinkedList<T> list, Action<T> renderFunc, double frameRate, Action<long>? debugFunc = null)
 	{
 		var frameTime = (long) (10_000_000 / frameRate);
