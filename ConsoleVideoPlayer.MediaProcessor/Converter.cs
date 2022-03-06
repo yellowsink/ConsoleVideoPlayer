@@ -60,7 +60,7 @@ public static class Converter
 	{
 		Console.Write("Creating ASCII art           ");
 		var fileLists = new DirectoryInfo(imageDir).EnumerateFiles()
-												   .OrderBy(f => int.Parse(f.Name[6..^5]))
+												   .OrderBy(f => int.Parse(f.Name[6..^4]))
 												   .Select((f, i) => (i, f.FullName))
 												   .ToArray()
 												   .Split(ThreadCount);
