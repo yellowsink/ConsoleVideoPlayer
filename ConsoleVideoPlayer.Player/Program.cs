@@ -58,7 +58,7 @@ internal static class Program
 			{
 				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
-				ViuPlay(audioPath, frameRate, processedArgs.Height);
+				await ViuPlay(audioPath, frameRate, processedArgs.Height);
 				return;
 			}
 
@@ -76,7 +76,7 @@ internal static class Program
 
 		Console.Write("\nReady to play video! Press enter to begin playback.");
 		Console.ReadLine();
-		AsciiPlay(audioPath, frames, frameRate, processedArgs.Debug);
+		await AsciiPlay(audioPath, frames, frameRate, processedArgs.Debug);
 	}
 
 	private static async Task<(LinkedList<string>, double, string)> ReadSaved(Args processedArgs)
@@ -119,28 +119,24 @@ internal static class Program
 		Console.WriteLine($"\nSaved the converted video to {processedArgs.CvidSavePath}.");
 	}
 
-	private static void AsciiPlay(string audioPath, LinkedList<string> frames, double frameRate, bool debug)
+	private static async Task AsciiPlay(string audioPath, LinkedList<string> frames, double frameRate, bool debug)
 	{
 		Console.Clear();
 
 		// disable warning as i don't want to await this - i want the execution to just continue!
-#pragma warning disable 4014
-		new NetCoreAudio.Player().Play(audioPath);
-#pragma warning restore 4014
+		await new NetCoreAudio.Player().Play(audioPath);
 
 		Player.PlayAsciiFrames(frames, frameRate, debug);
 
 		Directory.Delete(_tempDir, true);
 	}
 
-	private static void ViuPlay(string audioPath, double frameRate, int targetHeight)
+	private static async Task ViuPlay(string audioPath, double frameRate, int targetHeight)
 	{
 		Console.Clear();
 
 		// disable warning as i don't want to await this - i want the execution to just continue!
-#pragma warning disable 4014
-		new NetCoreAudio.Player().Play(audioPath);
-#pragma warning restore 4014
+		await new NetCoreAudio.Player().Play(audioPath);
 
 		var files = new LinkedList<string>(new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
 											  .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
