@@ -32,6 +32,9 @@ sufficiently for the lag caused by this alone, whereas frame skipping
 allows the player to drop frames constantly to keep up to realtime speed,
 at the expense of framerate if your terminal is too slow.
 
+Unrelated fun fact: I stole the time debt system in an earlier state for
+the logic in a tetris game I never finished (mainly cause it's awesome!)
+
 ## Important notes
 This program likes to use multiple gigabytes of RAM.
 If you do not have much RAM be aware that your system will be
