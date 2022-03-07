@@ -7,42 +7,31 @@ using System.Threading;
 namespace ConsoleVideoPlayer.Player;
 
 public static class Player
-{
-	private static readonly int PadLength = long.MaxValue.ToString().Length;
-
-	private const int DebugDebtQueueLength = 15;
-	
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static string FormatLong(long val) => val.ToString().PadLeft(PadLength, '0');
-	
-	public static void PlayAsciiFrames(LinkedList<string> frames, double frameRate, bool debug)
+{	
+	public static void PlayAsciiFrames(LinkedList<string> frames, double frameRate, bool debug, int frameSkip)
 	{
-		Console.CursorVisible = false;
-
-		var debugDebtQueue = new long[DebugDebtQueueLength];
-		var debugDebtMax   = 0L;
-		void DebugFunc(long timeDebt)
+		var stats = new RunningStats();
+		void DebugFunc(long? timeDebt)
 		{
-			for (var i = 0; i < debugDebtQueue.Length - 1; i++) debugDebtQueue[i + 1] = debugDebtQueue[i];
-			debugDebtQueue[0] = timeDebt;
+			if (timeDebt == null)
+			{
+				stats.AddDropped();
+				return;
+			}
 
-			var sum = 0L;
-			
-			// ReSharper disable once ForCanBeConvertedToForeach
-			// ReSharper disable once LoopCanBeConvertedToQuery
-			for (var i = 0; i < debugDebtQueue.Length; i++) sum += debugDebtQueue[i];
-
-			Console.Write("\u001b[32;40mTIME DEBT | curr: " + FormatLong(timeDebt) + " | last " + DebugDebtQueueLength
-						+ " mean: "                         + FormatLong(sum / DebugDebtQueueLength) + " | max: "
-						+ FormatLong(debugDebtMax = Math.Max(debugDebtMax, timeDebt)));
+			stats.Add(timeDebt.Value);
+			Console.Write(stats.Render(timeDebt.Value));
 		}
 
-		GenericPlay(frames, Console.Write, frameRate, debug ? DebugFunc : null);
+		
+		Console.CursorVisible = false;
+
+		GenericPlay(frames, Console.Write, frameRate, frameSkip, debug ? DebugFunc : null);
 
 		Console.CursorVisible = true;
 	}
 
-	public static void PlayViuFrames(LinkedList<string> filePaths, double frameRate, int targetHeight)
+	public static void PlayViuFrames(LinkedList<string> filePaths, double frameRate, int targetHeight, int frameSkip)
 	{
 		// scale values to represent viu better
 		targetHeight /= 2;
@@ -50,20 +39,37 @@ public static class Player
 		void RenderFunc(string path)
 			=> Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
 
-		GenericPlay(filePaths, RenderFunc, frameRate);
+		GenericPlay(filePaths, RenderFunc, frameRate, frameSkip);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
-	private static void GenericPlay<T>(LinkedList<T> list, Action<T> renderFunc, double frameRate, Action<long>? debugFunc = null)
+	private static void GenericPlay<T>(LinkedList<T> list, Action<T> renderFunc, double frameRate, int frameSkip,
+									   Action<long?>? debugFunc = null)
 	{
 		var frameTime = (long) (10_000_000 / frameRate);
 
 		long timeDebt = 0;
 
+		var skipCounter = 0;
+
 		Console.CursorVisible = false;
 
 		while (list.First != null)
 		{
+			if (timeDebt > frameTime)
+			{
+				if (frameSkip == -1 || skipCounter < frameSkip)
+				{
+					skipCounter++;
+					timeDebt -= frameTime;
+					list.RemoveFirst();
+					debugFunc?.Invoke(null);
+					continue;
+				}
+
+				skipCounter = 0;
+			}
+
 			var now = DateTime.UtcNow.Ticks;
 
 			Console.Write("\u001b[H");

@@ -7,27 +7,33 @@ namespace ConsoleVideoPlayer.Player;
 [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
 public class Args
 {
-	[Option('v', "video", Required = true)]
+	[Value(0, MetaName = "video", Required = true, HelpText = "The path of the video or cvid to play")]
 	public string VideoPath { get; set; } = "";
 
-	[Option('t', "tempFolder", Required = false)]
-	public string? TempFolderPath { get; set; }
+	[Option('h', "height", Required = false, HelpText = "You should be able to figure this out", Default = 72)]
+	public int Height { get; set; }
 
-	[Option('h', "height", Required = false)]
-	public int Height { get; set; } = 72;
+	[Option('w', "width", Required = false, HelpText = "And this too", Default = 128)]
+	public int Width { get; set; }
 
-	[Option('w', "width", Required = false)]
-	public int Width { get; set; } = 128;
+	[Option('k',
+			"frameSkip",
+			Required = false,
+			HelpText = "Skip given amount of consecutive frames if needed. -1 = infinite.")]
+	public int FrameSkip { get; set; }
 
-	[Option('s', "cvidSavePath", Required = false)]
-	public string CvidSavePath { get; set; } = "";
+	[Value(1, MetaName = "savePath", Required = false, HelpText = "Where to optionally save a cvid to")]
+	public string SavePath { get; set; } = "";
 
-	[Option('a', "useSavedFrames", Required = false)]
+	[Option('a', "useSavedFrames", Required = false, HelpText = "path is a cvid")]
 	public bool UseSavedFrames { get; set; }
 
-	[Option('i', "viu", Required = false)]
+	[Option('d', "debug", Required = false, HelpText = "Show debug stats in the player")]
+	public bool Debug { get; set; }
+
+	[Option('i', "viu", Required = false, HelpText = "Show images with viu")]
 	public bool UseViu { get; set; }
 
-	[Option('d', "debug", Required = false)]
-	public bool Debug { get; set; }
+	[Option('t', "tempFolder", Required = false, HelpText = "A custom tmp dir to make use of")]
+	public string? TempFolderPath { get; set; }
 }

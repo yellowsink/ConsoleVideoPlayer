@@ -31,7 +31,7 @@ internal static class Program
 		if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
 			return;
 
-		var saveAscii = !string.IsNullOrWhiteSpace(processedArgs.CvidSavePath);
+		var saveAscii = !string.IsNullOrWhiteSpace(processedArgs.SavePath);
 
 		_tempDir = processedArgs.TempFolderPath
 				?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -58,7 +58,7 @@ internal static class Program
 			{
 				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
-				await ViuPlay(audioPath, frameRate, processedArgs.Height);
+				await ViuPlay(audioPath, frameRate, processedArgs.Height, processedArgs.FrameSkip);
 				return;
 			}
 
@@ -76,7 +76,7 @@ internal static class Program
 
 		Console.Write("\nReady to play video! Press enter to begin playback.");
 		Console.ReadLine();
-		await AsciiPlay(audioPath, frames, frameRate, processedArgs.Debug);
+		await AsciiPlay(audioPath, frames, frameRate, processedArgs.Debug, processedArgs.FrameSkip);
 	}
 
 	private static async Task<(LinkedList<string>, double, string)> ReadSaved(Args processedArgs)
@@ -109,40 +109,40 @@ internal static class Program
 			Frames    = frames,
 			Framerate = frameRate,
 			Audio     = audioBytes
-		}.Write(processedArgs.CvidSavePath);
+		}.Write(processedArgs.SavePath);
 		Console.CursorVisible = true;
 		Directory.Delete(_tempDir, true);
 
 		Stopwatch.Stop();
 		Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
-		Console.WriteLine($"\nSaved the converted video to {processedArgs.CvidSavePath}.");
+		Console.WriteLine($"\nSaved the converted video to {processedArgs.SavePath}.");
 	}
 
-	private static async Task AsciiPlay(string audioPath, LinkedList<string> frames, double frameRate, bool debug)
+	private static async Task AsciiPlay(string audioPath, LinkedList<string> frames, double frameRate, bool debug, int skip)
 	{
 		Console.Clear();
 
 		// disable warning as i don't want to await this - i want the execution to just continue!
 		await new NetCoreAudio.Player().Play(audioPath);
 
-		Player.PlayAsciiFrames(frames, frameRate, debug);
+		Player.PlayAsciiFrames(frames, frameRate, debug, skip);
 
 		Directory.Delete(_tempDir, true);
 	}
 
-	private static async Task ViuPlay(string audioPath, double frameRate, int targetHeight)
+	private static async Task ViuPlay(string audioPath, double frameRate, int targetHeight, int skip)
 	{
 		Console.Clear();
 
 		// disable warning as i don't want to await this - i want the execution to just continue!
 		await new NetCoreAudio.Player().Play(audioPath);
 
-		var files = new LinkedList<string>(new DirectoryInfo(Path.Combine(_tempDir, "raw_frames")).EnumerateFiles()
+		var files = new LinkedList<string>(new DirectoryInfo(Path.Combine(_tempDir, "RawFrames")).EnumerateFiles()
 											  .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
 											  .Select(f => f.FullName));
 
-		Player.PlayViuFrames(files, frameRate, targetHeight);
+		Player.PlayViuFrames(files, frameRate, targetHeight, skip);
 
 		Directory.Delete(_tempDir, true);
 	}
@@ -158,7 +158,7 @@ internal static class Program
 			Environment.Exit(1);
 		}
 
-		if (processedArgs.UseViu && !string.IsNullOrWhiteSpace(processedArgs.CvidSavePath))
+		if (processedArgs.UseViu && !string.IsNullOrWhiteSpace(processedArgs.SavePath))
 		{
 			Console.WriteLine("Cannot use viu and save frames together");
 			Environment.Exit(2);
