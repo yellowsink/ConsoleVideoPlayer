@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
+using ConsoleVideoPlayer.MediaProcessor;
 
 namespace ConsoleVideoPlayer.Player;
 
 public static class Player
 {	
-	public static void PlayAsciiFrames(LinkedList<string> frames, double frameRate, bool debug, int frameSkip)
+	public static async Task PlayAsciiFrames(ConversionStream cstream, double frameRate, bool debug, int frameSkip)
 	{
 		var stats = new RunningStats();
 		void DebugFunc(long? timeDebt)
@@ -19,6 +21,8 @@ public static class Player
 				return;
 			}
 
+			stats.Running = cstream.IsRunning;
+
 			stats.Add(timeDebt.Value);
 			Console.Write(stats.Render(timeDebt.Value));
 		}
@@ -26,7 +30,7 @@ public static class Player
 		
 		Console.CursorVisible = false;
 
-		GenericPlay(frames, Console.Write, frameRate, frameSkip, debug ? DebugFunc : null);
+		await GenericPlay(cstream, Console.Write, frameRate, frameSkip, debug ? DebugFunc : null);
 
 		Console.CursorVisible = true;
 	}
@@ -38,11 +42,11 @@ public static class Player
 		void RenderFunc(string path)
 			=> Process.Start("viu", $"{path}").WaitForExit();
 
-		GenericPlay(filePaths, RenderFunc, frameRate, frameSkip);
+	//	GenericPlay(filePaths, RenderFunc, frameRate, frameSkip);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
-	private static void GenericPlay<T>(LinkedList<T> list, Action<T> renderFunc, double frameRate, int frameSkip,
+	private static async Task GenericPlay(ConversionStream cstream, Action<string> renderFunc, double frameRate, int frameSkip,
 									   Action<long?>? debugFunc = null)
 	{
 		var frameTime = (long) (10_000_000 / frameRate);
@@ -53,7 +57,7 @@ public static class Player
 
 		Console.CursorVisible = false;
 
-		while (list.First != null)
+		while (cstream.Count > 0)
 		{
 			if (timeDebt > frameTime)
 			{
@@ -61,7 +65,7 @@ public static class Player
 				{
 					skipCounter++;
 					timeDebt -= frameTime;
-					list.RemoveFirst();
+					await cstream.GetAsync();
 					debugFunc?.Invoke(null);
 					continue;
 				}
@@ -72,8 +76,7 @@ public static class Player
 			var now = DateTime.UtcNow.Ticks;
 
 			Console.Write("\u001b[H");
-			renderFunc(list.First.Value);
-			list.RemoveFirst();
+			renderFunc(await cstream.GetAsync());
 			debugFunc?.Invoke(timeDebt);
 
 			// measure the time rendering took

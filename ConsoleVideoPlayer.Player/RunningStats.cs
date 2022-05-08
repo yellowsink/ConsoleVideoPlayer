@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ConsoleVideoPlayer.Player;
 
-public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, int Debted = 0, int Dropped = 0)
+public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, int Debted = 0, int Dropped = 0, bool Running = false)
 {
 	public void Add(long amount)
 	{
@@ -50,7 +50,10 @@ public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, in
 		debugInfo.Append(" | MEAN: ");
 		debugInfo.Append(FormatLong(Mean));
 		debugInfo.Append(" | MAX: ");
-		debugInfo.Append(FormatLong(Max));
+		debugInfo.AppendLine(FormatLong(Max));
+
+		debugInfo.Append("CONV STREAM | RUNNING: ");
+		debugInfo.Append(Running);
 
 		return debugInfo.ToString();
 	}

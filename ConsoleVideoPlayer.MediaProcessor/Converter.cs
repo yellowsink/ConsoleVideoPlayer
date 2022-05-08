@@ -31,7 +31,7 @@ public static class Converter
 		target.Append('▀');
 	}
 
-	private static string ProcessImage(string path)
+	public static string ProcessImage(string path)
 	{
 		var lookup  = new PixelLookup(path);
 		var prevTop = SKColor.Empty;

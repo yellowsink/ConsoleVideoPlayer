@@ -23,7 +23,7 @@ internal static class Program
 		var isHighPrecision = Stopwatch.IsHighResolution;
 
 		Console.WriteLine($"Timer frequency: {freq / 1_000_000_000}GHz ({freq / 1_000_000}MHz), High precision: {(isHighPrecision ? "Yes" : "No")}");
-			
+
 		Console.ReadKey(); // let me get a damn debugger on this
 #endif
 
@@ -37,12 +37,13 @@ internal static class Program
 				?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
 								@"ConsoleVideoPlayer-Temp");
 
-		LinkedList<string> frames;
-		string       audioPath;
-		double       frameRate;
+		ConversionStream cstream;
+		string           audioPath;
+		double           frameRate;
 
 		if (processedArgs.UseSavedFrames)
-			(frames, frameRate, audioPath) = await ReadSaved(processedArgs);
+			//(cstream, frameRate, audioPath) = await ReadSaved(processedArgs);
+			(cstream, frameRate, audioPath) = (new(), 0, "");
 		else
 		{
 			var (meta, tempAPath) = await PreProcessor.PreProcess(processedArgs.VideoPath,
@@ -61,21 +62,28 @@ internal static class Program
 				return;
 			}
 
-			frames = await Converter.ConvertAllImages(Path.Combine(_tempDir, "RawFrames"));
+			//cstream = await Converter.ConvertAllImages(Path.Combine(_tempDir, "RawFrames"));
+			var dir   = new DirectoryInfo(Path.Combine(_tempDir, "RawFrames"));
+			var files = dir.EnumerateFiles().OrderBy(f => int.Parse(f.Name[6..^4])).Select(f => f.FullName);
+
+			cstream = new ConversionStream();
+			cstream.Add(files.ToArray());
+
+			cstream.Run();
 
 			// free disk space
-			PreProcessor.CleanupTempDir(Path.Combine(_tempDir, "RawFrames"));
-			
+			//PreProcessor.CleanupTempDir(Path.Combine(_tempDir, "RawFrames"));
+
 			if (saveAscii)
 			{
-				await AsciiSave(audioPath, frames, frameRate, processedArgs);
+				//await AsciiSave(audioPath, cstream, frameRate, processedArgs);
 				return;
 			}
 		}
 
 		Console.Write("\nReady to play video! Press enter to begin playback.");
 		Console.ReadLine();
-		await AsciiPlay(audioPath, frames, frameRate, processedArgs.Debug, processedArgs.FrameSkip);
+		await AsciiPlay(audioPath, cstream, frameRate, processedArgs.Debug, processedArgs.FrameSkip);
 	}
 
 	private static async Task<(LinkedList<string>, double, string)> ReadSaved(Args processedArgs)
@@ -118,14 +126,15 @@ internal static class Program
 		Console.WriteLine($"\nSaved the converted video to {processedArgs.SavePath}.");
 	}
 
-	private static async Task AsciiPlay(string audioPath, LinkedList<string> frames, double frameRate, bool debug, int skip)
+	private static async Task AsciiPlay(string audioPath, ConversionStream frames, double frameRate, bool debug,
+										int    skip)
 	{
 		Console.Clear();
 
 		// disable warning as i don't want to await this - i want the execution to just continue!
 		await new NetCoreAudio.Player().Play(audioPath);
 
-		Player.PlayAsciiFrames(frames, frameRate, debug, skip);
+		await Player.PlayAsciiFrames(frames, frameRate, debug, skip);
 
 		Directory.Delete(_tempDir, true);
 	}
