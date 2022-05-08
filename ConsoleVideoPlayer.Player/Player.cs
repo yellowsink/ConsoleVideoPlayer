@@ -31,13 +31,12 @@ public static class Player
 		Console.CursorVisible = true;
 	}
 
-	public static void PlayViuFrames(LinkedList<string> filePaths, double frameRate, int targetHeight, int frameSkip)
+	public static void PlayViuFrames(LinkedList<string> filePaths, double frameRate, int frameSkip)
 	{
 		// scale values to represent viu better
-		targetHeight /= 2;
 
 		void RenderFunc(string path)
-			=> Process.Start("viu", $"{path} -h {targetHeight}")?.WaitForExit();
+			=> Process.Start("viu", $"{path}").WaitForExit();
 
 		GenericPlay(filePaths, RenderFunc, frameRate, frameSkip);
 	}

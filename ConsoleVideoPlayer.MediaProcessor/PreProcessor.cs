@@ -24,7 +24,7 @@ public static class PreProcessor
 		return pathWav;
 	}
 
-	public static async Task SplitIntoFrames(IMediaInfo metadata, int width, int height, string tempDir,
+	public static async Task SplitIntoFrames(IMediaInfo metadata, int? width, int? height, string tempDir,
 											 bool       overwrite = false)
 	{
 		var dest = Path.Combine(tempDir, "RawFrames");
@@ -40,12 +40,12 @@ public static class PreProcessor
 		if (stream == null)
 			throw new InvalidDataException("input media must have a video stream");
 
-		await FFmpeg.Conversions.New()
-					.AddStream(stream)
-					.AddParameter($"-s {width}x{height}")
-					.ExtractEveryNthFrame(1, NameBuilder)
-					.UseMultiThread(true)
-					.Start();
+		var conv = FFmpeg.Conversions.New().AddStream(stream);
+
+		if (width.HasValue && height.HasValue)
+			conv = conv.AddParameter($"-s {width.Value}x{height.Value}");
+
+		await conv.ExtractEveryNthFrame(1, NameBuilder).UseMultiThread(true).Start();
 	}
 	
 	public static void CleanupTempDir(string path)
@@ -56,7 +56,7 @@ public static class PreProcessor
 		}
 	}
 
-	public static async Task<(IMediaInfo, string)> PreProcess(string videoPath, string tempDir, int width, int height)
+	public static async Task<(IMediaInfo, string)> PreProcess(string videoPath, string tempDir, int? width, int? height)
 	{
 		var sw = Stopwatch.StartNew();
 		Console.Write("Preparing to pre-process     ");

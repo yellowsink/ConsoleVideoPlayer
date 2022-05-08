@@ -45,11 +45,10 @@ internal static class Program
 			(frames, frameRate, audioPath) = await ReadSaved(processedArgs);
 		else
 		{
-			var (meta, tempAPath)
-				= await PreProcessor.PreProcess(processedArgs.VideoPath,
-												_tempDir,
-												processedArgs.Width,
-												processedArgs.Height);
+			var (meta, tempAPath) = await PreProcessor.PreProcess(processedArgs.VideoPath,
+																  _tempDir,
+																  processedArgs.UseViu ? null : processedArgs.Width,
+																  processedArgs.UseViu ? null : processedArgs.Height);
 
 			audioPath = tempAPath;
 			frameRate = meta.VideoStreams.First().Framerate;
@@ -58,7 +57,7 @@ internal static class Program
 			{
 				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
-				await ViuPlay(audioPath, frameRate, processedArgs.Height, processedArgs.FrameSkip);
+				await ViuPlay(audioPath, frameRate, processedArgs.FrameSkip);
 				return;
 			}
 
@@ -131,7 +130,7 @@ internal static class Program
 		Directory.Delete(_tempDir, true);
 	}
 
-	private static async Task ViuPlay(string audioPath, double frameRate, int targetHeight, int skip)
+	private static async Task ViuPlay(string audioPath, double frameRate, int skip)
 	{
 		Console.Clear();
 
@@ -142,7 +141,7 @@ internal static class Program
 											  .OrderBy(f => Convert.ToInt32(f.Name[new Range(6, f.Name.Length - 4)]))
 											  .Select(f => f.FullName));
 
-		Player.PlayViuFrames(files, frameRate, targetHeight, skip);
+		Player.PlayViuFrames(files, frameRate, skip);
 
 		Directory.Delete(_tempDir, true);
 	}
