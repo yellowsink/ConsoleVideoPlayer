@@ -2,7 +2,7 @@ namespace ConsoleVideoPlayer.MediaProcessor;
 
 public class ConversionStream
 {
-	private const int BatchSize = 8;
+	private const int BatchSize = 2;
 
 	public bool IsRunning;
 
