@@ -67,9 +67,7 @@ internal static class Program
 			var files = dir.EnumerateFiles().OrderBy(f => int.Parse(f.Name[6..^4])).Select(f => f.FullName);
 
 			cstream = new ConversionStream();
-			cstream.Add(files.ToArray());
-
-			cstream.Run();
+			cstream.AddAndRun(files.ToArray());
 
 			// free disk space
 			//PreProcessor.CleanupTempDir(Path.Combine(_tempDir, "RawFrames"));

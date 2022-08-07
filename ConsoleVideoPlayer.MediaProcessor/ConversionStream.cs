@@ -43,6 +43,22 @@ public class ConversionStream
 		return _outbox.Dequeue();
 	}
 
+/*
+	private async Task WaitForFile(string path, int timeout = 5000)
+	{
+		var tOutTask = Task.Delay(timeout);
+		while (!tOutTask.IsCompleted)
+		{
+			if (File.Exists(path))
+				return;
+			
+			await Task.Delay(50);
+		}
+
+		throw new FileNotFoundException($"Timed out waiting for file {path}");
+	}
+*/
+	
 	public void Run()
 	{
 		if (IsRunning) return;
