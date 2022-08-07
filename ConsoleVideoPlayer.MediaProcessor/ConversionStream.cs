@@ -1,9 +1,9 @@
 namespace ConsoleVideoPlayer.MediaProcessor;
 
+// The ascii frame conversion is actually fast enough now since the overhaul that multithreading is unnecessary
+
 public class ConversionStream
 {
-	private const int BatchSize = 2;
-
 	public bool IsRunning;
 
 	public int Count;
@@ -16,6 +16,12 @@ public class ConversionStream
 		Count += paths.Count;
 		foreach (var path in paths)
 			_inbox.Enqueue(path);
+	}
+
+	public void AddAndRun(IReadOnlyCollection<string> paths)
+	{
+		Add(paths);
+		Run();
 	}
 
 	public bool TryGet(out string? frame)
@@ -43,23 +49,10 @@ public class ConversionStream
 
 		IsRunning = true;
 
-		Task.Run(async () =>
+		Task.Run(() =>
 		{
 			while (_inbox.Count != 0)
-			{
-				var batch = new List<string>();
-				for (var i = 0; i < BatchSize; i++)
-					if (_inbox.Count != 0)
-						batch.Add(_inbox.Dequeue());
-
-				var tasks = batch.Select((f, i) => Task.Run(() => (i, Converter.ProcessImage(f)))).ToArray();
-
-				var results = await Task.WhenAll(tasks);
-
-				var sorted = results.OrderBy(p => p.i).Select(p => p.Item2);
-				foreach (var frame in sorted)
-					_outbox.Enqueue(frame);
-			}
+				_outbox.Enqueue(Converter.ProcessImage(_inbox.Dequeue()));
 
 			IsRunning = false;
 		});
