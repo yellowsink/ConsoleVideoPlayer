@@ -40,14 +40,12 @@ public static class Player
 		Console.CursorVisible = true;
 	}
 
-	public static void PlayViuFrames(LinkedList<string> filePaths, double frameRate, int frameSkip)
+	public static async Task PlayViuFrames(IFrameStream filePaths, double frameRate, int frameSkip)
 	{
-		// scale values to represent viu better
-
 		void RenderFunc(string path)
 			=> Process.Start("viu", $"{path}").WaitForExit();
 
-	//	GenericPlay(filePaths, RenderFunc, frameRate, frameSkip);
+		await GenericPlay(filePaths, RenderFunc, frameRate, frameSkip);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
