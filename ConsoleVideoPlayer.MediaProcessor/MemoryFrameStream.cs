@@ -1,18 +1,20 @@
 namespace ConsoleVideoPlayer.MediaProcessor;
 
 /// <summary>
-/// A frame stream that just buffers values in memory
+///     A frame stream that just buffers values in memory
 /// </summary>
 public class MemoryFrameStream : IFrameStream
 {
-	public MemoryFrameStream() { }
-	public MemoryFrameStream(IReadOnlyCollection<string> items) => Add(items);
+	private readonly LinkedList<string> _frames = new();
+
+
+	private int _dequeueCounter;
+	//public MemoryFrameStream() { }
+	public MemoryFrameStream(IReadOnlyCollection<string> items) { Add(items); }
 
 	public FrameStreamStatus Status     => FrameStreamStatus.STOPPED;
 	public int               Count      => _frames.Count;
 	public int               ReadyCount => Count;
-
-	private readonly LinkedList<string> _frames = new();
 
 	public void Add(IReadOnlyCollection<string> inItems)
 	{
@@ -22,8 +24,6 @@ public class MemoryFrameStream : IFrameStream
 
 	public void AddAndRun(IReadOnlyCollection<string> inItems) => Add(inItems);
 
-
-	private int _dequeueCounter = 0;
 	public bool TryGet(out string? frame)
 	{
 		frame = _frames.First?.Value;
@@ -35,7 +35,7 @@ public class MemoryFrameStream : IFrameStream
 			GC.Collect();
 			_dequeueCounter = 0;
 		}
-		
+
 		_frames.RemoveFirst();
 		return true;
 	}
@@ -56,7 +56,7 @@ public class MemoryFrameStream : IFrameStream
 		return Task.FromResult(arr);
 	}
 
-	public void SafelyProcessMore(int items) {}
-	public void SafelyProcessAll() {}
-	public void Run() {}
+	public void SafelyProcessMore(int items) { }
+	public void SafelyProcessAll()           { }
+	public void Run()                        { }
 }

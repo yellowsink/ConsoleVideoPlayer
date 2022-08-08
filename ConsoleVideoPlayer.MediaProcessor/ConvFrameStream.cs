@@ -1,12 +1,18 @@
 namespace ConsoleVideoPlayer.MediaProcessor;
 
 /// <summary>
-/// An implementation of IFrameStream that converts images on disk to frames
+///     An implementation of IFrameStream that converts images on disk to frames
 /// </summary>
 public class ConvFrameStream : IFrameStream
 {
 	// how many batches should be processed between GC collections
 	public const int BatchCollectionInterval = 10;
+
+	private readonly Queue<string> _inbox  = new();
+	private readonly Queue<string> _outbox = new();
+
+	// if -1, ignored, else counts down on every processed item. When 0, running thread will wait for it to not be.
+	private int _safeProcessCountdown = -1;
 
 
 	/// <inheritdoc />
@@ -17,12 +23,6 @@ public class ConvFrameStream : IFrameStream
 
 	/// <inheritdoc />
 	public int ReadyCount => _outbox.Count;
-
-	// if -1, ignored, else counts down on every processed item. When 0, running thread will wait for it to not be.
-	private int _safeProcessCountdown = -1;
-
-	private readonly Queue<string> _inbox  = new();
-	private readonly Queue<string> _outbox = new();
 
 	/// <inheritdoc />
 	public void Add(IReadOnlyCollection<string> paths)
@@ -101,7 +101,7 @@ public class ConvFrameStream : IFrameStream
 						batchCount = 0;
 						GC.Collect();
 					}
-					else batchCount++;
+					else { batchCount++; }
 
 					Status = FrameStreamStatus.IDLE;
 

@@ -19,7 +19,7 @@ public static class Converter
 			if (tChanged) target.Append($"38;2;{top.Red};{top.Green};{top.Blue}");
 
 			if (tChanged && bChanged) target.Append(';');
-			
+
 			if (bChanged) target.Append($"48;2;{btm.Red};{btm.Green};{btm.Blue}");
 
 			target.Append('m');
@@ -42,7 +42,7 @@ public static class Converter
 			{
 				var top = lookup.AtCoord(x, y);
 				var btm = lookup.AtCoord(x, y + 1);
-				
+
 				AnsiEscape(top, btm, prevTop, prevBtm, working);
 
 				prevTop = top;

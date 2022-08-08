@@ -8,10 +8,10 @@ namespace ConsoleVideoPlayer.Player;
 [MessagePackObject]
 public class Cvid
 {
-	[Key(2)] public byte[]   Audio = System.Array.Empty<byte>();
+	[Key(2)] public byte[]   Audio = Array.Empty<byte>();
 	[Key(1)] public double   Framerate;
 	[Key(0)] public string[] Frames = Array.Empty<string>();
-	
+
 	public void Write(string savePath)
 	{
 		using var stream = new CompressionStream(File.Create(savePath));

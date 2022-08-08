@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -39,8 +38,7 @@ internal static class Program
 		string       audioPath;
 		double       frameRate;
 
-		if (processedArgs.UseSavedFrames)
-			(fstream, frameRate, audioPath) = await ReadSaved(processedArgs);
+		if (processedArgs.UseSavedFrames) { (fstream, frameRate, audioPath) = await ReadSaved(processedArgs); }
 		else
 		{
 			var (meta, tempAPath) = await PreProcessor.PreProcess(processedArgs.VideoPath,

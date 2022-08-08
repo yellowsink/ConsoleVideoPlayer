@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -11,13 +10,15 @@ namespace ConsoleVideoPlayer.Player;
 public static class Player
 {
 	// amount of frames to process in each batch
-	public const int FrameBatchSize    = 50;
+	public const int FrameBatchSize = 50;
+
 	// how many (at most!) frames must be remaining before the next batch is queued for processing
 	public const int FrameProcessThres = 2;
 
 	public static async Task PlayAsciiFrames(IFrameStream cstream, double frameRate, bool debug, int frameSkip)
 	{
 		var stats = new RunningStats();
+
 		void DebugFunc(long? timeDebt)
 		{
 			if (timeDebt == null)
@@ -32,7 +33,7 @@ public static class Player
 			Console.Write(stats.Render(timeDebt.Value));
 		}
 
-		
+
 		Console.CursorVisible = false;
 
 		await GenericPlay(cstream, Console.Write, frameRate, frameSkip, debug ? DebugFunc : null);
@@ -49,8 +50,8 @@ public static class Player
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
-	private static async Task GenericPlay(IFrameStream cstream, Action<string> renderFunc, double frameRate, int frameSkip,
-									   Action<long?>? debugFunc = null)
+	private static async Task GenericPlay(IFrameStream cstream,   Action<string> renderFunc, double frameRate,
+										  int          frameSkip, Action<long?>? debugFunc = null)
 	{
 		var frameTime = (long) (10_000_000 / frameRate);
 
@@ -76,7 +77,7 @@ public static class Player
 				//else
 				skipCounter = 0;
 			}
-			
+
 			// keep conversion stream in check
 			if (cstream.ReadyCount < FrameProcessThres)
 				cstream.SafelyProcessMore(FrameBatchSize);

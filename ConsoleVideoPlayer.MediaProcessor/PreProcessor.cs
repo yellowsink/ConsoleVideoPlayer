@@ -47,7 +47,7 @@ public static class PreProcessor
 
 		await conv.ExtractEveryNthFrame(1, NameBuilder).UseMultiThread(true).Start();
 	}
-	
+
 	public static void CleanupTempDir(string path)
 	{
 		try { Directory.Delete(path, true); }
@@ -64,12 +64,12 @@ public static class PreProcessor
 		CleanupTempDir(tempDir);
 		Directory.CreateDirectory(tempDir);
 		Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms");
-		
+
 		sw.Restart();
 		Console.Write("Extracting Audio             ");
 		var audioPath = await ExtractAudio(videoPath, tempDir);
 		Console.WriteLine($"Done in {sw.Elapsed.TotalSeconds:F2}s");
-		
+
 		sw.Restart();
 		Console.Write("Splitting into images        ");
 		await SplitIntoFrames(metadata, width, height, tempDir);

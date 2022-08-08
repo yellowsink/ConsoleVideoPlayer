@@ -39,7 +39,7 @@ public class Args
 
 	[Option('t', "tempFolder", Required = false, HelpText = "A custom tmp dir to make use of")]
 	public string? TempFolderPath { get; set; }
-	
+
 	public static Args ProcessArgs(IEnumerable<string> rawArgs)
 	{
 		var processedArgs = new Args();
