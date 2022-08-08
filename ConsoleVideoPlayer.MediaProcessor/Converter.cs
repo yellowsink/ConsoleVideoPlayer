@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using SkiaSharp;
@@ -7,8 +6,6 @@ namespace ConsoleVideoPlayer.MediaProcessor;
 
 public static class Converter
 {
-	private const int ThreadCount = 8;
-
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static void AnsiEscape(SKColor top, SKColor btm, SKColor prevTop, SKColor prevBtm, StringBuilder target)
 	{
@@ -56,27 +53,5 @@ public static class Converter
 		}
 
 		return working.ToString();
-	}
-
-	public static async Task<LinkedList<string>> ConvertAllImages(string imageDir)
-	{
-		Console.Write("Creating ASCII art           ");
-		var fileLists = new DirectoryInfo(imageDir).EnumerateFiles()
-												   .OrderBy(f => int.Parse(f.Name[6..^4]))
-												   .Select((f, i) => (i, f.FullName))
-												   .ToArray()
-												   .Split(ThreadCount);
-
-		var sw = Stopwatch.StartNew();
-
-		var tasks = fileLists.Select(l => Task.Run(() => l.Select(p => (p.i, ProcessImage(p.FullName))).ToArray()))
-							 .ToArray();
-
-		var results = await Task.WhenAll(tasks);
-		sw.Stop();
-
-		Console.WriteLine($"Done in {sw.Elapsed.Minutes}m {sw.Elapsed.Seconds + sw.Elapsed.Milliseconds / 1000.0:F2}s");
-
-		return new LinkedList<string>(results.SelectMany(m => m).OrderBy(p => p.i).Select(p => p.Item2));
 	}
 }

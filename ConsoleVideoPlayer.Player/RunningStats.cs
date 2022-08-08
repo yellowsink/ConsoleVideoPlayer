@@ -2,10 +2,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
+using ConsoleVideoPlayer.MediaProcessor;
 
 namespace ConsoleVideoPlayer.Player;
 
-public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, int Debted = 0, int Dropped = 0, bool Running = false)
+public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, int Debted = 0, int Dropped = 0, FrameStreamStatus Running = 0)
 {
 	public void Add(long amount)
 	{
@@ -53,7 +54,7 @@ public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, in
 		debugInfo.AppendLine(FormatLong(Max));
 
 		debugInfo.Append("CONV STREAM | ");
-		debugInfo.Append(Running ? "RUNNING " : "FINISHED");
+		debugInfo.Append(Running.ToString().PadRight(7));
 
 		return debugInfo.ToString();
 	}

@@ -9,8 +9,13 @@ using ConsoleVideoPlayer.MediaProcessor;
 namespace ConsoleVideoPlayer.Player;
 
 public static class Player
-{	
-	public static async Task PlayAsciiFrames(ConversionStream cstream, double frameRate, bool debug, int frameSkip)
+{
+	// amount of frames to process in each batch
+	public const int FrameBatchSize    = 50;
+	// how many (at most!) frames must be remaining before the next batch is queued for processing
+	public const int FrameProcessThres = 2;
+
+	public static async Task PlayAsciiFrames(IFrameStream cstream, double frameRate, bool debug, int frameSkip)
 	{
 		var stats = new RunningStats();
 		void DebugFunc(long? timeDebt)
@@ -21,7 +26,7 @@ public static class Player
 				return;
 			}
 
-			stats.Running = cstream.IsRunning;
+			stats.Running = cstream.Status;
 
 			stats.Add(timeDebt.Value);
 			Console.Write(stats.Render(timeDebt.Value));
@@ -46,7 +51,7 @@ public static class Player
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveOptimization)]
-	private static async Task GenericPlay(ConversionStream cstream, Action<string> renderFunc, double frameRate, int frameSkip,
+	private static async Task GenericPlay(IFrameStream cstream, Action<string> renderFunc, double frameRate, int frameSkip,
 									   Action<long?>? debugFunc = null)
 	{
 		var frameTime = (long) (10_000_000 / frameRate);
@@ -73,6 +78,10 @@ public static class Player
 				//else
 				skipCounter = 0;
 			}
+			
+			// keep conversion stream in check
+			if (cstream.ReadyCount < FrameProcessThres)
+				cstream.SafelyProcessMore(FrameBatchSize);
 
 			var now = DateTime.UtcNow.Ticks;
 
@@ -82,8 +91,8 @@ public static class Player
 
 			// collect gc every 240 frames = 8 seconds at 30fps
 			// tested various other places to put GC.Collect() but in the hot path is sadly the only effective solution
-			if (cstream.Count % 240 == 0) 
-				GC.Collect();
+			/*if (cstream.Count % 240 == 0) 
+				GC.Collect();*/ // handled in conv stream now
 
 			// measure the time rendering took
 			var renderTime = DateTime.UtcNow.Ticks - now;

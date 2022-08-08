@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using CommandLine;
 
 namespace ConsoleVideoPlayer.Player;
@@ -37,4 +39,28 @@ public class Args
 
 	[Option('t', "tempFolder", Required = false, HelpText = "A custom tmp dir to make use of")]
 	public string? TempFolderPath { get; set; }
+	
+	public static Args ProcessArgs(IEnumerable<string> rawArgs)
+	{
+		var processedArgs = new Args();
+		Parser.Default.ParseArguments<Args>(rawArgs).WithParsed(o => { processedArgs = o; });
+
+		if (processedArgs.UseViu && processedArgs.UseSavedFrames)
+		{
+			Console.WriteLine("Cannot use viu and play saved frames together");
+			Environment.Exit(1);
+		}
+
+		if (processedArgs.UseViu && !string.IsNullOrWhiteSpace(processedArgs.SavePath))
+		{
+			Console.WriteLine("Cannot use viu and save frames together");
+			Environment.Exit(2);
+		}
+
+		// width and height must be multiples of 2 or stuff breaks
+		processedArgs.Width  += processedArgs.Width  % 2;
+		processedArgs.Height += processedArgs.Height % 2;
+
+		return processedArgs;
+	}
 }
