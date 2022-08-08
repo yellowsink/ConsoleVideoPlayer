@@ -70,6 +70,7 @@ public static class Player
 					continue;
 				}
 
+				//else
 				skipCounter = 0;
 			}
 
@@ -78,6 +79,11 @@ public static class Player
 			Console.Write("\u001b[H");
 			renderFunc(await cstream.GetAsync());
 			debugFunc?.Invoke(timeDebt);
+
+			// collect gc every 240 frames = 8 seconds at 30fps
+			// tested various other places to put GC.Collect() but in the hot path is sadly the only effective solution
+			if (cstream.Count % 240 == 0) 
+				GC.Collect();
 
 			// measure the time rendering took
 			var renderTime = DateTime.UtcNow.Ticks - now;
