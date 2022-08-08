@@ -34,7 +34,7 @@ public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, in
 	{
 		var debugInfo = new StringBuilder("\u001b[32;40m");
 					
-		debugInfo.Append("FRAME     | CURR: ");
+		debugInfo.Append("FRAME       | CURR: ");
 		debugInfo.Append(FullCount.ToString());
 		debugInfo.Append(" | DROPPED: ");
 		debugInfo.Append(Dropped.ToString());
@@ -45,15 +45,15 @@ public record struct RunningStats(int Count = 0, long Mean = 0, long Max = 0, in
 		debugInfo.Append(" | DEBTED %: ");
 		debugInfo.AppendLine(FormatPercent(DebtedPercent));
 
-		debugInfo.Append("TIME DEBT | CURR: ");
+		debugInfo.Append("TIME DEBT   | CURR: ");
 		debugInfo.Append(FormatLong(current));
 		debugInfo.Append(" | MEAN: ");
 		debugInfo.Append(FormatLong(Mean));
 		debugInfo.Append(" | MAX: ");
 		debugInfo.AppendLine(FormatLong(Max));
 
-		debugInfo.Append("CONV STREAM | RUNNING: ");
-		debugInfo.Append(Running);
+		debugInfo.Append("CONV STREAM | ");
+		debugInfo.Append(Running ? "RUNNING " : "FINISHED");
 
 		return debugInfo.ToString();
 	}

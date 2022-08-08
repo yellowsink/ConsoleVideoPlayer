@@ -19,7 +19,8 @@ public class Args
 	[Option('k',
 			"frameSkip",
 			Required = false,
-			HelpText = "Skip given amount of consecutive frames if needed. -1 = infinite.")]
+			HelpText = "Drop at most set amount of consecutive frames if needed. -1 = uncapped, 0 = no skip.",
+			Default = -1)]
 	public int FrameSkip { get; set; }
 
 	[Value(1, MetaName = "savePath", Required = false, HelpText = "Where to optionally save a cvid to")]
