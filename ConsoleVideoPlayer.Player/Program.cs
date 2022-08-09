@@ -27,7 +27,11 @@ internal static class Program
 #endif
 		
 		// register ctrl-c event to cleanup temp dir
-		Console.CancelKeyPress += (_, _) => ClearTmp();
+		Console.CancelKeyPress += (_, _) =>
+		{
+			ClearTmp();
+			Console.CursorVisible = true;
+		};
 
 		var processedArgs = Args.ProcessArgs(args);
 		if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
@@ -40,7 +44,7 @@ internal static class Program
 								@"ConsoleVideoPlayer-Temp");
 
 		IFrameStream fstream;
-		string       audioPath;
+		string?       audioPath;
 		double       frameRate;
 
 		if (processedArgs.UseSavedFrames) { (fstream, frameRate, audioPath) = await ReadSaved(processedArgs); }
@@ -82,32 +86,35 @@ internal static class Program
 		await AsciiPlay(audioPath, fstream, frameRate, processedArgs.Debug, processedArgs.FrameSkip);
 	}
 
-	private static async Task<(IFrameStream, double, string)> ReadSaved(Args processedArgs)
+	private static async Task<(IFrameStream, double, string?)> ReadSaved(Args processedArgs)
 	{
 		Console.Write("Loading CVID file... ");
 		Stopwatch.Restart();
 
 		var cvid      = Cvid.Read(processedArgs.VideoPath);
 		var frames    = new MemoryFrameStream(cvid.Frames);
-		var frameRate = cvid.Framerate;
+
 		var audioPath = Path.Join(_tempDir, "audio.wav");
-		Directory.CreateDirectory(_tempDir);
-		await File.WriteAllBytesAsync(audioPath, cvid.Audio);
+		if (cvid.Audio.Length != 0)
+		{
+			Directory.CreateDirectory(_tempDir);
+			await File.WriteAllBytesAsync(audioPath, cvid.Audio);
+		}
 
 		Stopwatch.Stop();
 		Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
 
-		return (frames, frameRate, audioPath);
+		return (frames, cvid.Framerate, cvid.Audio.Length == 0 ? null : audioPath);
 	}
 
-	private static async Task AsciiSave(string audioPath, IFrameStream frames, double frameRate, Args processedArgs)
+	private static async Task AsciiSave(string? audioPath, IFrameStream frames, double frameRate, Args processedArgs)
 	{
 		Console.Write("Saving to CVID file...       ");
 		Stopwatch.Restart();
 
 		frames.SafelyProcessAll();
 
-		var audioBytes = await File.ReadAllBytesAsync(audioPath);
+		var audioBytes = audioPath != null ? await File.ReadAllBytesAsync(audioPath) : Array.Empty<byte>();
 		new Cvid
 		{
 			Frames    = await frames.GetAllRemaining(),
@@ -122,22 +129,24 @@ internal static class Program
 		Console.WriteLine($"\nSaved the converted video to {processedArgs.SavePath}.");
 	}
 
-	private static async Task AsciiPlay(string audioPath, IFrameStream frames, double frameRate, bool debug, int skip)
+	private static async Task AsciiPlay(string? audioPath, IFrameStream frames, double frameRate, bool debug, int skip)
 	{
 		Console.Clear();
 
-		await new NetCoreAudio.Player().Play(audioPath);
+		if (audioPath != null)
+			await new NetCoreAudio.Player().Play(audioPath);
 
 		await Player.PlayAsciiFrames(frames, frameRate, debug, skip);
 
 		ClearTmp();
 	}
 
-	private static async Task ViuPlay(string audioPath, double frameRate, int skip)
+	private static async Task ViuPlay(string? audioPath, double frameRate, int skip)
 	{
 		Console.Clear();
 
-		await new NetCoreAudio.Player().Play(audioPath);
+		if (audioPath != null)
+			await new NetCoreAudio.Player().Play(audioPath);
 
 		var files = new DirectoryInfo(Path.Combine(_tempDir, "RawFrames")).EnumerateFiles()
 																		  .OrderBy(f => Convert

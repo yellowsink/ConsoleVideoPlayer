@@ -56,7 +56,7 @@ public static class PreProcessor
 		}
 	}
 
-	public static async Task<(IMediaInfo, string)> PreProcess(string videoPath, string tempDir, int? width, int? height)
+	public static async Task<(IMediaInfo, string?)> PreProcess(string videoPath, string tempDir, int? width, int? height)
 	{
 		var sw = Stopwatch.StartNew();
 		Console.Write("Preparing to pre-process     ");
@@ -66,9 +66,13 @@ public static class PreProcessor
 		Console.WriteLine($"Done in {sw.ElapsedMilliseconds}ms");
 
 		sw.Restart();
-		Console.Write("Extracting Audio             ");
-		var audioPath = await ExtractAudio(videoPath, tempDir);
-		Console.WriteLine($"Done in {sw.Elapsed.TotalSeconds:F2}s");
+		string? audioPath = null;
+		if (metadata.AudioStreams.Any())
+		{
+			Console.Write("Extracting Audio             ");
+			audioPath = await ExtractAudio(videoPath, tempDir);
+			Console.WriteLine($"Done in {sw.Elapsed.TotalSeconds:F2}s");
+		}
 
 		sw.Restart();
 		Console.Write("Splitting into images        ");

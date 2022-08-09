@@ -33,12 +33,7 @@ public static class Player
 			Console.Write(stats.Render(timeDebt.Value));
 		}
 
-
-		Console.CursorVisible = false;
-
 		await GenericPlay(cstream, Console.Write, frameRate, frameSkip, debug ? DebugFunc : null);
-
-		Console.CursorVisible = true;
 	}
 
 	public static async Task PlayViuFrames(IFrameStream filePaths, double frameRate, int frameSkip)
@@ -110,5 +105,7 @@ public static class Player
 			// wait for it!
 			Thread.Sleep(new TimeSpan(toWait));
 		}
+		
+		Console.CursorVisible = true;
 	}
 }
