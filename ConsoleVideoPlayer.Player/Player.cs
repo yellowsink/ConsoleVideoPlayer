@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ConsoleVideoPlayer.MediaProcessor;
@@ -36,12 +37,18 @@ public static class Player
 		await GenericPlay(cstream, Console.Write, frameRate, frameSkip, debug ? DebugFunc : null);
 	}
 
-	public static async Task PlayViuFrames(IFrameStream filePaths, double frameRate, int frameSkip)
+	public static async Task PlayKittenFrames(IFrameStream filePaths, double frameRate, int frameSkip)
 	{
-		void RenderFunc(string path)
-			=> Process.Start("viu", $"{path}").WaitForExit();
-
-		await GenericPlay(filePaths, RenderFunc, frameRate, frameSkip);
+		await GenericPlay(filePaths,
+						  path =>
+						  {
+							  var b64Path = Convert.ToBase64String(Encoding.Default.GetBytes(path));
+							  
+							  // f=100 = png, t=f = read from file
+							  Console.Write($"\u001b_Gf=100,t=f;{b64Path}\u001b\\");
+						  },
+						  frameRate,
+						  frameSkip);
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveOptimization)]

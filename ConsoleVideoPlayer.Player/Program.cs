@@ -67,17 +67,17 @@ internal static class Program
 		{
 			var (meta, tempAPath) = await PreProcessor.PreProcess(processedArgs.VideoPath,
 																  _tempDir,
-																  processedArgs.UseViu ? null : processedArgs.Width,
-																  processedArgs.UseViu ? null : processedArgs.Height);
+																  processedArgs.IsKitten ? null : processedArgs.Width,
+																  processedArgs.IsKitten ? null : processedArgs.Height);
 
 			audioPath = tempAPath;
 			frameRate = meta.VideoStreams.First().Framerate;
 
-			if (processedArgs.UseViu)
+			if (processedArgs.IsKitten)
 			{
 				Console.Write("\nReady to play video! Press enter to begin playback.");
 				Console.ReadLine();
-				await ViuPlay(audioPath, frameRate, processedArgs.FrameSkip);
+				await KittenPlay(audioPath, frameRate, processedArgs.FrameSkip);
 				return;
 			}
 
@@ -156,7 +156,7 @@ internal static class Program
 		ClearTmp();
 	}
 
-	private static async Task ViuPlay(string? audioPath, double frameRate, int skip)
+	private static async Task KittenPlay(string? audioPath, double frameRate, int skip)
 	{
 		Console.Clear();
 
@@ -173,7 +173,7 @@ internal static class Program
 																		  .Select(f => f.FullName)
 																		  .ToArray();
 
-		await Player.PlayViuFrames(new MemoryFrameStream(files), frameRate, skip);
+		await Player.PlayKittenFrames(new MemoryFrameStream(files), frameRate, skip);
 
 		ClearTmp();
 	}

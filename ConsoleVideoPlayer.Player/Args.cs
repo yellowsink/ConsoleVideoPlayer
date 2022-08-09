@@ -34,26 +34,30 @@ public class Args
 	[Option('d', "debug", Required = false, HelpText = "Show debug stats in the player")]
 	public bool Debug { get; set; }
 
-	[Option('i', "viu", Required = false, HelpText = "Show images with viu")]
-	public bool UseViu { get; set; }
+	[Option('y', "kitty", Required = false, HelpText = "Show images with the kitty image protocol")]
+	public bool IsKitten { get; set; } // programs that use kitty apis are called kittens
 
 	[Option('t', "tempFolder", Required = false, HelpText = "A custom tmp dir to make use of")]
 	public string? TempFolderPath { get; set; }
 
 	public static Args ProcessArgs(IEnumerable<string> rawArgs)
 	{
-		var processedArgs = new Args();
+		Args? processedArgs = null;
 		Parser.Default.ParseArguments<Args>(rawArgs).WithParsed(o => { processedArgs = o; });
 
-		if (processedArgs.UseViu && processedArgs.UseSavedFrames)
+		if (processedArgs == null)
+			// parser was unsuccessful
+			Environment.Exit(1);
+		
+		if (processedArgs.IsKitten && processedArgs.UseSavedFrames)
 		{
 			Console.WriteLine("Cannot use viu and play saved frames together");
 			Environment.Exit(1);
 		}
 
-		if (processedArgs.UseViu && !string.IsNullOrWhiteSpace(processedArgs.SavePath))
+		if (processedArgs.IsKitten && !string.IsNullOrWhiteSpace(processedArgs.SavePath))
 		{
-			Console.WriteLine("Cannot use viu and save frames together");
+			Console.WriteLine("Cannot use kitty and save frames together");
 			Environment.Exit(2);
 		}
 
