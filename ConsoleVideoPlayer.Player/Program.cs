@@ -12,6 +12,8 @@ internal static class Program
 	private static readonly Stopwatch Stopwatch = new();
 
 	private static string _tempDir = null!;
+	
+	private static void ClearTmp() => Directory.Delete(_tempDir, true);
 
 	private static async Task Main(string[] args)
 	{
@@ -23,6 +25,9 @@ internal static class Program
 
 		Console.ReadKey(); // let me get a debugger on this
 #endif
+		
+		// register ctrl-c event to cleanup temp dir
+		Console.CancelKeyPress += (_, _) => ClearTmp();
 
 		var processedArgs = Args.ProcessArgs(args);
 		if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
@@ -109,7 +114,7 @@ internal static class Program
 			Framerate = frameRate,
 			Audio     = audioBytes
 		}.Write(processedArgs.SavePath);
-		Directory.Delete(_tempDir, true);
+		ClearTmp();
 
 		Stopwatch.Stop();
 		Console.WriteLine($"Done in {Math.Round(Stopwatch.Elapsed.TotalSeconds, 2)}s");
@@ -125,7 +130,7 @@ internal static class Program
 
 		await Player.PlayAsciiFrames(frames, frameRate, debug, skip);
 
-		Directory.Delete(_tempDir, true);
+		ClearTmp();
 	}
 
 	private static async Task ViuPlay(string audioPath, double frameRate, int skip)
@@ -146,6 +151,6 @@ internal static class Program
 
 		await Player.PlayViuFrames(new MemoryFrameStream(files), frameRate, skip);
 
-		Directory.Delete(_tempDir, true);
+		ClearTmp();
 	}
 }
