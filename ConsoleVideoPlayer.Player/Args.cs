@@ -9,13 +9,19 @@ namespace ConsoleVideoPlayer.Player;
 [SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
 public class Args
 {
+	private const int DefWidth  = 128;
+	private const int DefHeight = 72;
+	
+	private const int KitDefWidth  = 1280;
+	private const int KitDefHeight = 720;
+	
 	[Value(0, MetaName = "video", Required = true, HelpText = "The path of the video or cvid to play")]
 	public string VideoPath { get; set; } = "";
 
-	[Option('h', "height", Required = false, HelpText = "You should be able to figure this out", Default = 72)]
+	[Option('h', "height", Required = false, HelpText = "You should be able to figure this out", Default = DefHeight)]
 	public int Height { get; set; }
 
-	[Option('w', "width", Required = false, HelpText = "And this too", Default = 128)]
+	[Option('w', "width", Required = false, HelpText = "And this too", Default = DefWidth)]
 	public int Width { get; set; }
 
 	[Option('k',
@@ -59,6 +65,13 @@ public class Args
 		{
 			Console.WriteLine("Cannot use kitty and save frames together");
 			Environment.Exit(2);
+		}
+
+		if (processedArgs.IsKitten && processedArgs.Height == DefHeight && processedArgs.Width == DefWidth)
+		{
+			// in kitten mode set less teeny tiny defaults
+			processedArgs.Height = KitDefHeight;
+			processedArgs.Width  = KitDefWidth;
 		}
 
 		// width and height must be multiples of 2 or stuff breaks

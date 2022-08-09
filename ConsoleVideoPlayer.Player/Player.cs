@@ -44,8 +44,10 @@ public static class Player
 						  {
 							  var b64Path = Convert.ToBase64String(Encoding.Default.GetBytes(path));
 							  
-							  // f=100 = png, t=f = read from file
-							  Console.Write($"\u001b_Gf=100,t=f;{b64Path}\u001b\\");
+							  // a=T = magical param that makes it work (?)
+							  // f=100 = png
+							  // t=f = read from file
+							  Console.Write($"\u001b_Gq=1,a=T,f=100,t=f;{b64Path}\u001b\\");
 						  },
 						  frameRate,
 						  frameSkip);

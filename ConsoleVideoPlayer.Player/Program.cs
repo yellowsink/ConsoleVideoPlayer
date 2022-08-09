@@ -67,8 +67,8 @@ internal static class Program
 		{
 			var (meta, tempAPath) = await PreProcessor.PreProcess(processedArgs.VideoPath,
 																  _tempDir,
-																  processedArgs.IsKitten ? null : processedArgs.Width,
-																  processedArgs.IsKitten ? null : processedArgs.Height);
+																  processedArgs.Width,
+																  processedArgs.Height);
 
 			audioPath = tempAPath;
 			frameRate = meta.VideoStreams.First().Framerate;
