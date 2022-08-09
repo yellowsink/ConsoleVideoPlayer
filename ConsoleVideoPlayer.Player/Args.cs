@@ -74,6 +74,9 @@ public class Args
 			processedArgs.Width  = KitDefWidth;
 		}
 
+		if (processedArgs.IsKitten && (processedArgs.Height > KitDefHeight || processedArgs.Width > KitDefWidth))
+			Console.WriteLine("Be careful increasing the video resolution - high resolutions and framerates can hugely lag or even hang");
+
 		// width and height must be multiples of 2 or stuff breaks
 		processedArgs.Width  += processedArgs.Width  % 2;
 		processedArgs.Height += processedArgs.Height % 2;
