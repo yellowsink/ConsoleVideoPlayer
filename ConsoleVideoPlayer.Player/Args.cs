@@ -77,9 +77,14 @@ public class Args
 		if (processedArgs.IsKitten && (processedArgs.Height > KitDefHeight || processedArgs.Width > KitDefWidth))
 			Console.WriteLine("Be careful increasing the video resolution - high resolutions and framerates can hugely lag or even hang");
 
-		// width and height must be multiples of 2 or stuff breaks
+		// width and height must be multiples of braille char size or stuff breaks
 		processedArgs.Width  += processedArgs.Width  % 2;
-		processedArgs.Height += processedArgs.Height % 2;
+		processedArgs.Height += processedArgs.Height % 4;
+
+		// convert half-block width/height values to fit with braille chars
+		// braille characters are twice as info-dense as half-blocks in both dimensions
+		processedArgs.Width  *= 2;
+		processedArgs.Height *= 2;
 
 		return processedArgs;
 	}

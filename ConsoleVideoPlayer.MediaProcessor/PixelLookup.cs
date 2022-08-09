@@ -9,9 +9,9 @@ public class PixelLookup
 	private SKColor[]? _pixelCache;
 	public PixelLookup(string path) { _image = SKBitmap.Decode(path); }
 
-	private SKColor[] Pixels => _pixelCache ??= _image.Pixels;
-	public  int       Width  => _image.Width;
-	public  int       Height => _image.Height;
+	public SKColor[] Pixels => _pixelCache ??= _image.Pixels;
+	public int       Width  => _image.Width;
+	public int       Height => _image.Height;
 
 	public SKColor AtCoord(int x, int y) => Pixels[Width * y + x];
 }
