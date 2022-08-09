@@ -6,6 +6,37 @@ namespace ConsoleVideoPlayer.MediaProcessor;
 
 public static class Converter
 {
+	public static char Create8CellBraille(bool[] dots)
+	{
+		if (dots.Length != 8) throw new ArgumentException("must be 8 dots", nameof(dots));
+
+		uint final = 0x2800;
+
+		for (var i = 0; i < 8; i++)
+			if (dots[i])
+			{
+				final += 1u << i switch
+				{
+					// 0 3
+					// 1 4
+					// 2 5
+					// 6 7
+					0 => 0,
+					1 => 3,
+					2 => 1,
+					3 => 4,
+					4 => 2,
+					5 => 5,
+					6 => 6,
+					7 => 7,
+					// shush compiler
+					_ => 0
+				};
+			}
+
+		return (char) final;
+	}
+
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
 	private static void AnsiEscape(SKColor top, SKColor btm, SKColor prevTop, SKColor prevBtm, StringBuilder target)
 	{
