@@ -92,7 +92,7 @@ public static class Converter
 		var prevFg = ((byte) 0, (byte) 0, (byte) 0);
 		var prevBg = ((byte) 0, (byte) 0, (byte) 0);
 
-		var averageLuma = FindAvgLuma(lookup.Pixels/*, 0.66*/);
+		//var averageLuma = FindAvgLuma(lookup.Pixels/*, 0.66*/);
 		
 		var working = new StringBuilder();
 
@@ -112,6 +112,8 @@ public static class Converter
 					lookup.AtCoord(x + 0, y + 3),
 					lookup.AtCoord(x + 1, y + 3),
 				};
+
+				var averageLuma = FindAvgLuma(pixels);
 
 				var aboveLen  = 0;
 				var aboveAvgR = 0u;
