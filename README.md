@@ -21,36 +21,24 @@ with lag from slow frames on terminals that can ordinarily keep
 the rendering speed high enough.
 
 Some terminals at some resolutions may consistently render very
-slowly however, so you can enable the debug display with `-d` and
-increase the frame skip value `-k` until the time debt stays more
-consistently lower.
+slowly however, so frame skipping is allowed by default.
+You may still enable the debug display with `-d` and
+play with the frame skip value `-k` until its tweaked just right.
 
-If you are rendering to viu on kitty (`--viu`), I recommend you set
-frame skip to unlimited with `-k -1`, this is because slowdowns from
-viu are expected, and the time debt system alone cannot compensate
+If you are rendering to kitty (`--kitty`), I recommend you leave frame
+skip on unlimited, this is because slowdowns are expected,
+and the time debt system alone might not compensate
 sufficiently for the lag caused by this alone, whereas frame skipping
 allows the player to drop frames constantly to keep up to realtime speed,
 at the expense of framerate if your terminal is too slow.
 
-Unrelated fun fact: I stole the time debt system in an earlier state for
-the logic in a tetris game I never finished (mainly cause it's awesome!)
+Update 2022-08-10: The system has been rewritten from the ground up.
+It now does not drift over time, and users on Windows especially will
+find that they experience much more accurate timing.
 
-## Important notes
-This program likes to use multiple gigabytes of RAM.
-If you do not have much RAM be aware that your system will be
-swapping memory constantly.
+Unrelated fun fact: I stole a very early version of time debt for
+the logic in a tetris game I never finished (mainly cause it's awesome!)
 
 ## How to use
 Run the ConsoleVideoPlayer.Player executable and pass it the
-path to an mp4.  See the help `-h` for other args.
-
-To save the converted video as a file for later,
-pass a second path.  To later use this file pass it with `-a`.
-
-### Examples
-| Functionality | Command |
-|-|-|
-| Play test.mp4 | `./ConsoleVideoPlayer.Player test.mp4` |
-| Convert test.mp4 to test.cvid | `./ConsoleVideoPlayer.Player test.mp4 test.cvid` |
-| Play test.cvid | `./ConsoleVideoPlayer.Player -a test.cvid` |
-| Play test.mp4 at 84x72 | `./ConsoleVideoPlayer.Player test.mp4 -w 84 -h 72` |
+path to an mp4. Run with no args to see help.
