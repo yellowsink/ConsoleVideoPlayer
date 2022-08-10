@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleVideoPlayer.Player",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleVideoPlayer.MediaProcessor", "ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.csproj", "{C1511B6C-530D-4FB6-916A-022DB6E00FE2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BassDlls", "BassDlls\BassDlls.csproj", "{3DB28287-462B-4D4D-A3EF-52A8F6972A06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C1511B6C-530D-4FB6-916A-022DB6E00FE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1511B6C-530D-4FB6-916A-022DB6E00FE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C1511B6C-530D-4FB6-916A-022DB6E00FE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DB28287-462B-4D4D-A3EF-52A8F6972A06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DB28287-462B-4D4D-A3EF-52A8F6972A06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DB28287-462B-4D4D-A3EF-52A8F6972A06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DB28287-462B-4D4D-A3EF-52A8F6972A06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

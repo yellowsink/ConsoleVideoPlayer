@@ -7,21 +7,23 @@
 
         <!--<SelfContained>true</SelfContained>-->
         <PublishSingleFile>true</PublishSingleFile>
-        <PublishReadyToRun>true</PublishReadyToRun>
+        <!--<PublishReadyToRun>true</PublishReadyToRun>-->
         <!-- no trimming because some deps arent trimmable -->
         <!--<PublishTrimmed>true</PublishTrimmed>-->
         <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.8.0"/>
-        <PackageReference Include="MessagePack" Version="2.3.85"/>
-        <PackageReference Include="NetCoreAudio" Version="1.6.3"/>
-        <PackageReference Include="ZstdNet" Version="1.4.5"/>
+        <PackageReference Include="CommandLineParser" Version="2.8.0" />
+        <PackageReference Include="ManagedBass" Version="3.1.1" />
+        <PackageReference Include="MessagePack" Version="2.3.85" />
+        <PackageReference Include="ZstdNet" Version="1.4.5" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.csproj"/>
+        <ProjectReference Include="..\ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.csproj" />
+        <!-- include bassdlls in build but do not actually reference it -->
+        <ProjectReference Include="..\BassDlls\BassDlls.csproj" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>
