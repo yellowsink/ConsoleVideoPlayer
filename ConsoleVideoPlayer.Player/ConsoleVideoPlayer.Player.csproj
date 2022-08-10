@@ -7,7 +7,7 @@
 
         <!--<SelfContained>true</SelfContained>-->
         <PublishSingleFile>true</PublishSingleFile>
-        <PublishReadyToRun>true</PublishReadyToRun>
+        <!--<PublishReadyToRun>true</PublishReadyToRun>-->
         <!-- no trimming because some deps arent trimmable -->
         <!--<PublishTrimmed>true</PublishTrimmed>-->
         <InvariantGlobalization>true</InvariantGlobalization>
@@ -22,6 +22,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\ConsoleVideoPlayer.MediaProcessor\ConsoleVideoPlayer.MediaProcessor.csproj" />
+        <!-- include bassdlls in build but do not actually reference it -->
+        <ProjectReference Include="..\BassDlls\BassDlls.csproj" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>

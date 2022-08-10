@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="win-x64\**" >
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        
+        <Content Include="linux-x64\**" >
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+        
+        <Content Include="osx-x64\**" >
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+</Project>
