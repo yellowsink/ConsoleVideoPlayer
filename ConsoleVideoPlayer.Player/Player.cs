@@ -96,7 +96,7 @@ public static class Player
 				Thread.Sleep(new TimeSpan(waitTime));
 			else
 				// if we can't fully make up time try to do it later
-				timeDebt += waitTime;
+				timeDebt += -waitTime;
 		}
 		
 		Console.CursorVisible = true;
