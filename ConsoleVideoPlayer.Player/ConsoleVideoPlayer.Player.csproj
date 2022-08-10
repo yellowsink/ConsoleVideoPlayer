@@ -7,7 +7,7 @@
 
         <!--<SelfContained>true</SelfContained>-->
         <PublishSingleFile>true</PublishSingleFile>
-        <!--<PublishReadyToRun>true</PublishReadyToRun>-->
+        <PublishReadyToRun>true</PublishReadyToRun>
         <!-- no trimming because some deps arent trimmable -->
         <!--<PublishTrimmed>true</PublishTrimmed>-->
         <InvariantGlobalization>true</InvariantGlobalization>
