@@ -48,16 +48,19 @@ public static class Player
 	private static async Task GenericPlay(IFrameStream cstream,   Action<string> renderFunc, double frameRate,
 										  int          frameSkip, Action<long?>? debugFunc = null)
 	{
-		var frameTime = (long) (10_000_000 / frameRate);
-
-		long timeDebt = 0;
-
+		var frameTime   = (long) (10_000_000 / frameRate);
+		var startTime   = DateTime.UtcNow.Ticks;
+		var timeDebt    = 0L;
 		var skipCounter = 0;
 
 		Console.CursorVisible = false;
 
-		while (cstream.Count > 0)
+		for (var frameCount = 1; cstream.Count > 0; frameCount++)
 		{
+			// keep conversion stream in check
+			if (cstream.ReadyCount < FrameProcessThres)
+				cstream.SafelyProcessMore(FrameBatchSize);
+			
 			if (timeDebt > frameTime)
 			{
 				if (frameSkip == -1 || skipCounter < frameSkip)
@@ -73,37 +76,27 @@ public static class Player
 				skipCounter = 0;
 			}
 
-			// keep conversion stream in check
-			if (cstream.ReadyCount < FrameProcessThres)
-				cstream.SafelyProcessMore(FrameBatchSize);
-
-			var now = DateTime.UtcNow.Ticks;
-
 			Console.Write("\u001b[H");
 			renderFunc(await cstream.GetAsync());
 			debugFunc?.Invoke(timeDebt);
 
-			// collect gc every 240 frames = 8 seconds at 30fps
-			// tested various other places to put GC.Collect() but in the hot path is sadly the only effective solution
-			/*if (cstream.Count % 240 == 0) 
-				GC.Collect();*/ // handled in conv stream now
-
-			// measure the time rendering took
-			var renderTime = DateTime.UtcNow.Ticks - now;
-			// the amount of time we need to compensate for
-			var makeupTarget = renderTime + timeDebt;
+			// measure current time
+			var current  = DateTime.UtcNow.Ticks - startTime;
+			
+			// the full amount of time we are behind by
+			var amountBehind = current - (frameCount * frameTime) + timeDebt;
+			
 			// timeDebt has been accounted for, reset it!
 			timeDebt = 0;
-			// the maximum possible correction to apply this frame
-			var correction = Math.Min(makeupTarget, frameTime);
-			// if we can't fully make up time try to do it later
-			if (makeupTarget > frameTime)
-				timeDebt += makeupTarget - frameTime;
+			
+			// ideally how long we need to wait for (how far *ahead* we are if you will)
+			var waitTime = frameTime - amountBehind;
 
-			var toWait = frameTime - correction;
-
-			// wait for it!
-			Thread.Sleep(new TimeSpan(toWait));
+			if (waitTime > 0)
+				Thread.Sleep(new TimeSpan(waitTime));
+			else
+				// if we can't fully make up time try to do it later
+				timeDebt += waitTime;
 		}
 		
 		Console.CursorVisible = true;
