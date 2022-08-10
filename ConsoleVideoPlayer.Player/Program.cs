@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ConsoleVideoPlayer.MediaProcessor;
+using ManagedBass;
 
 namespace ConsoleVideoPlayer.Player;
 
@@ -12,9 +13,19 @@ internal static class Program
 	private static readonly Stopwatch Stopwatch = new();
 
 	private static string _tempDir = null!;
+
+	private static bool _bassAvailable;
 	
 	private static void ClearTmp() => Directory.Delete(_tempDir, true);
 
+	private static void Play(string path)
+	{
+		if (!_bassAvailable) return;
+		var stream = Bass.CreateStream(path, Flags: BassFlags.AutoFree | BassFlags.AsyncFile);
+		if (stream == 0) return;
+		Bass.ChannelPlay(stream);
+	}
+	
 	private static async Task Main(string[] args)
 	{
 #if DEBUG
@@ -32,6 +43,10 @@ internal static class Program
 			ClearTmp();
 			Console.CursorVisible = true;
 		};
+
+		_bassAvailable = Bass.Init();
+		if (!_bassAvailable)
+			Console.WriteLine("Could not init audio playback.");
 
 		var processedArgs = Args.ProcessArgs(args);
 		if (string.IsNullOrWhiteSpace(processedArgs.VideoPath))
@@ -134,7 +149,7 @@ internal static class Program
 		Console.Clear();
 
 		if (audioPath != null)
-			await new NetCoreAudio.Player().Play(audioPath);
+			Play(audioPath);
 
 		await Player.PlayAsciiFrames(frames, frameRate, debug, skip);
 
@@ -146,7 +161,7 @@ internal static class Program
 		Console.Clear();
 
 		if (audioPath != null)
-			await new NetCoreAudio.Player().Play(audioPath);
+			Play(audioPath);
 
 		var files = new DirectoryInfo(Path.Combine(_tempDir, "RawFrames")).EnumerateFiles()
 																		  .OrderBy(f => Convert
