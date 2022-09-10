@@ -17,6 +17,7 @@
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="ManagedBass" Version="3.1.1" />
         <PackageReference Include="MessagePack" Version="2.3.85" />
+        <PackageReference Include="TimeDebt" Version="1.0.1" />
         <PackageReference Include="ZstdNet" Version="1.4.5" />
     </ItemGroup>
 
