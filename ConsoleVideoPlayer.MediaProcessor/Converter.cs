@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using SkiaSharp;
 
 namespace ConsoleVideoPlayer.MediaProcessor;
 
@@ -50,7 +49,7 @@ public static class Converter
 	}
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static byte FindAvgLuma(SKColor[] frame/*, float bias*/)
+	private static byte FindAvgLuma(Color[] frame/*, float bias*/)
 	{
 		//TODO: how would one implement the bias?
 		
@@ -61,24 +60,22 @@ public static class Converter
 
 		return (byte) (lumaSum / frame.Length);
 	}
-
+	
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static void AnsiEscape((byte r, byte g, byte b) fg,     (byte r, byte g, byte b) bg,
-								   (byte r, byte g, byte b) prevFg, (byte r, byte g, byte b) prevBg,
-								   StringBuilder            target,  char                     c)
+	private static void AnsiEscape(Color fg, Color bg, Color prevFg, Color prevBg, StringBuilder target, bool first,  char c)
 	{
-		var tChanged = fg != prevFg;
-		var bChanged = bg != prevBg;
+		var tChanged = fg != prevFg || first;
+		var bChanged = bg != prevBg || first;
 
 		if (tChanged || bChanged)
 		{
 			target.Append("\u001b[");
 
-			if (tChanged) target.Append($"38;2;{fg.r};{fg.g};{fg.b}");
+			if (tChanged) target.Append($"38;2;{fg.Red};{fg.Green};{fg.Blue}");
 
 			if (tChanged && bChanged) target.Append(';');
 
-			if (bChanged) target.Append($"48;2;{bg.r};{bg.g};{bg.b}");
+			if (bChanged) target.Append($"48;2;{bg.Red};{bg.Green};{bg.Blue}");
 
 			target.Append('m');
 		}
@@ -88,9 +85,10 @@ public static class Converter
 
 	public static string ProcessImage(string path)
 	{
-		var lookup  = new PixelLookup(path);
-		var prevFg = ((byte) 0, (byte) 0, (byte) 0);
-		var prevBg = ((byte) 0, (byte) 0, (byte) 0);
+		var lookup = new PixelLookup(path);
+		var prevFg = new Color(0, 0, 0);
+		var prevBg = new Color(0, 0, 0);
+		var first  = true;
 
 		//var averageLuma = FindAvgLuma(lookup.Pixels/*, 0.66*/);
 		
@@ -151,22 +149,26 @@ public static class Converter
 				var bChar = Create8CellBraille(cells);
 
 				var fg = belowLen == 0
-							 ? ((byte) 0, (byte) 0, (byte) 0)
-							 : ((byte) (belowAvgR / belowLen), (byte) (belowAvgG / belowLen),
-								(byte) (belowAvgB / belowLen));
+							 ? new Color(0, 0, 0)
+							 : new Color((byte) (belowAvgR / belowLen),
+										 (byte) (belowAvgG / belowLen),
+										 (byte) (belowAvgB / belowLen));
 
 				var bg = aboveLen == 0
 							 ? fg
-							 : ((byte) (aboveAvgR / aboveLen), (byte) (aboveAvgG / aboveLen),
-								(byte) (aboveAvgB / aboveLen));
+							 : new Color((byte) (aboveAvgR / aboveLen),
+										 (byte) (aboveAvgG / aboveLen),
+										 (byte) (aboveAvgB / aboveLen));
 
 				if (belowLen == 0)
 					fg = bg;
 				
-				AnsiEscape(fg, bg, prevFg, prevBg, working, bChar);
+				AnsiEscape(fg, bg, prevFg, prevBg, working, first, bChar);
 
 				prevFg = fg;
 				prevBg = bg;
+				
+				first = false;
 			}
 
 			working.AppendLine();

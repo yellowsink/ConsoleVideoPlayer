@@ -1,17 +1,27 @@
-﻿using SkiaSharp;
+﻿using QoiSharp;
 
 namespace ConsoleVideoPlayer.MediaProcessor;
 
-public class PixelLookup
+internal class PixelLookup
 {
-	private readonly SKBitmap _image;
+	public PixelLookup(string path)
+	{
+		var qoiImg = QoiDecoder.Decode(File.ReadAllBytes(path));
 
-	private SKColor[]? _pixelCache;
-	public PixelLookup(string path) { _image = SKBitmap.Decode(path); }
+		Width  = qoiImg.Width;
+		Height = qoiImg.Height;
+		
+		_pixels = new Color[qoiImg.Height * qoiImg.Width];
 
-	public SKColor[] Pixels => _pixelCache ??= _image.Pixels;
-	public int       Width  => _image.Width;
-	public int       Height => _image.Height;
+		var j = 0;
 
-	public SKColor AtCoord(int x, int y) => Pixels[Width * y + x];
+		for (var i = 0; i < qoiImg.Data.Length; i += (int) qoiImg.Channels)
+			_pixels[j++] = new Color(qoiImg.Data[i], qoiImg.Data[i + 1], qoiImg.Data[i + 2]);
+	}
+
+	public readonly Color[] _pixels;
+	public readonly int     Width;
+	public readonly int     Height;
+
+	public Color AtCoord(int x, int y) => _pixels[Width * y + x];
 }
