@@ -6,10 +6,10 @@ namespace ConsoleVideoPlayer.MediaProcessor;
 public static class Converter
 {
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static void AnsiEscape(Color top, Color btm, Color prevTop, Color prevBtm, StringBuilder target)
+	private static void AnsiEscape(Color top, Color btm, Color prevTop, Color prevBtm, StringBuilder target, bool first)
 	{
-		var tChanged = top != prevTop;
-		var bChanged = btm != prevBtm;
+		var tChanged = top != prevTop || first;
+		var bChanged = btm != prevBtm || first;
 
 		if (tChanged || bChanged)
 		{
@@ -30,8 +30,9 @@ public static class Converter
 	public static string ProcessImage(string path)
 	{
 		var lookup  = new PixelLookup(path);
-		var prevTop = Color.Empty;
-		var prevBtm = Color.Empty;
+		var prevTop = new Color(0, 0, 0);
+		var prevBtm = new Color(0, 0, 0);
+		var first   = true;
 
 		var working = new StringBuilder();
 
@@ -42,10 +43,11 @@ public static class Converter
 				var top = lookup.AtCoord(x, y);
 				var btm = lookup.AtCoord(x, y + 1);
 
-				AnsiEscape(top, btm, prevTop, prevBtm, working);
+				AnsiEscape(top, btm, prevTop, prevBtm, working, first);
 
 				prevTop = top;
 				prevBtm = btm;
+				first   = false;
 			}
 
 			working.AppendLine();
