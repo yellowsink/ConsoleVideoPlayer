@@ -131,6 +131,7 @@ public static class Converter
 					var b     = pixels[i].Blue;
 					if (Rec709Luma(r, g, b) >= averageLuma)
 					{
+						cells[i] = true;
 						aboveLen++;
 						aboveAvgR += r;
 						aboveAvgG += g;
@@ -138,7 +139,6 @@ public static class Converter
 					}
 					else
 					{
-						cells[i] = true;
 						belowLen++;
 						belowAvgR += r;
 						belowAvgG += g;
@@ -146,6 +146,12 @@ public static class Converter
 					}
 				}
 
+				var swap = aboveLen > belowLen;
+				
+				if (swap)
+					for (var i = 0; i < cells.Length; i++)
+						cells[i] = !cells[i];
+				
 				var bChar = Create8CellBraille(cells);
 
 				var fg = belowLen == 0
@@ -163,6 +169,9 @@ public static class Converter
 				if (belowLen == 0)
 					fg = bg;
 				
+				if (swap)
+					(fg, bg) = (bg, fg);
+
 				AnsiEscape(fg, bg, prevFg, prevBg, working, first, bChar);
 
 				prevFg = fg;
