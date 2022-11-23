@@ -33,9 +33,9 @@ public static class PreProcessor
 
 		Directory.CreateDirectory(dest);
 
-		string NameBuilder(string i) => $"\"{Path.Combine(dest, $"image{i}.png")}\"";
+		string NameBuilder(string i) => $"\"{Path.Combine(dest, $"image{i}.qoi")}\"";
 
-		var stream = metadata.VideoStreams.FirstOrDefault()?.SetCodec(VideoCodec.png);
+		var stream = metadata.VideoStreams.FirstOrDefault()?.SetCodec("qoi");
 
 		if (stream == null)
 			throw new InvalidDataException("input media must have a video stream");

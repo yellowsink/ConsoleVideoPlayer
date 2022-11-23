@@ -7,9 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="QoiSharp" Version="1.0.0" />
         <PackageReference Include="Xabe.FFmpeg" Version="5.1.0" />
-        <PackageReference Include="SkiaSharp" Version="2.80.3" />
-        <PackageReference Include="SkiaSharp.NativeAssets.Linux" Version="2.80.3" />
     </ItemGroup>
 
 </Project>

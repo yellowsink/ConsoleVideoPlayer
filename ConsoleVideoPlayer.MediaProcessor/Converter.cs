@@ -1,13 +1,12 @@
 using System.Runtime.CompilerServices;
 using System.Text;
-using SkiaSharp;
 
 namespace ConsoleVideoPlayer.MediaProcessor;
 
 public static class Converter
 {
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	private static void AnsiEscape(SKColor top, SKColor btm, SKColor prevTop, SKColor prevBtm, StringBuilder target)
+	private static void AnsiEscape(Color top, Color btm, Color prevTop, Color prevBtm, StringBuilder target)
 	{
 		var tChanged = top != prevTop;
 		var bChanged = btm != prevBtm;
@@ -31,8 +30,8 @@ public static class Converter
 	public static string ProcessImage(string path)
 	{
 		var lookup  = new PixelLookup(path);
-		var prevTop = SKColor.Empty;
-		var prevBtm = SKColor.Empty;
+		var prevTop = Color.Empty;
+		var prevBtm = Color.Empty;
 
 		var working = new StringBuilder();
 
