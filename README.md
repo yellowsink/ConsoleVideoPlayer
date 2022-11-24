@@ -39,6 +39,17 @@ find that they experience much more accurate timing.
 Unrelated fun fact: I stole a very early version of time debt for
 the logic in a tetris game I never finished (mainly cause it's awesome!)
 
+## Braille vs standard
+
+There is WIP braille rendering support.
+
+If you are using an environment which treats braille like drawing characters
+(eg st boxdraw, CozetteDrawing font) then braille rendering will let you trade
+having more artefacts for a higher resolution.
+
+If you have a normal font in which braille displays as a set of dots with gaps
+around them, then it will probably look *really* bad, especially on sharp edges.
+
 ## How to use
 Run the ConsoleVideoPlayer.Player executable and pass it the
 path to an mp4. Run with no args to see help.

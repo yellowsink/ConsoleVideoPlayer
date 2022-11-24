@@ -17,14 +17,14 @@ public static class Converter
 	//private static readonly double LumaScale = 1.0 / Rec709Luma(255, 255, 255);
 
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static char Create8CellBraille(bool[] dots)
+	private static char Create8CellBraille(bool[] dots)
 	{
 		if (dots.Length != 8) throw new ArgumentException("must be 8 dots", nameof(dots));
 
 		uint final = 0x2800;
 
 		for (var i = 0; i < 8; i++)
-			if (dots[i])
+			if (!dots[i])
 			{
 				final += 1u << i switch
 				{
@@ -146,7 +146,7 @@ public static class Converter
 					}
 				}
 
-				var swap = aboveLen > belowLen;
+				var swap = aboveLen < belowLen;
 				
 				if (swap)
 					for (var i = 0; i < cells.Length; i++)
